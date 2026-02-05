@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sentry USB | Tactical Pro</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Plus+Jakarta+Sans:wght@300;400;600;800&display=swap');
+        
+        :root {
+            --primary: #6366f1;
+            --danger: #ff4757;
+            --bg: #05070a;
+        }
+
+        body {
+            background-color: var(--bg);
+            color: #f8fafc;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            overflow: hidden;
+            user-select: none;
+        }
+
+        .header-font { font-family: 'Orbitron', sans-serif; }
+
+        .glass {
+            background: rgba(10, 15, 25, 0.8);
+            backdrop-filter: blur(25px) saturate(180%);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.6);
+        }
+
+        .glow-armed { 
+            border-color: rgba(99, 102, 241, 0.5) !important;
+            box-shadow: 0 0 40px -10px rgba(99, 102, 241, 0.3); 
+        }
+        
+        .glow-alert { 
+            animation: alert-flash 0.6s infinite; 
+            border-color: var(--danger) !important;
+        }
+
+        @keyframes alert-flash {
+            0%, 100% { background-color: rgba(10, 15, 25, 0.9); box-shadow: 0 0 20px rgba(255, 71, 87, 0.2); }
+            50% { background-color: rgba(45, 10, 20, 1); box-shadow: 0 0 80px rgba(255, 71, 87, 0.5); }
+        }
+
+        .laser-visual {
+            position: absolute;
+            width: 100%;
+            height: 2px;
+            background: var(--danger);
+            top: 50%;
+            box-shadow: 0 0 20px var(--danger), 0 0 40px var(--danger);
+            animation: flicker 0.1s infinite;
+            display: none;
+            z-index: 20;
+        }
+
+        @keyframes flicker {
+            0% { opacity: 0.8; transform: scaleY(1); }
+            50% { opacity: 1; transform: scaleY(1.5); }
+            100% { opacity: 0.9; transform: scaleY(1); }
+        }
+
+        .siren-wave {
+            position: absolute;
+            inset: 0;
+            display: none;
+            border-radius: 4rem;
+            border: 4px solid var(--danger);
+            animation: expand 1s infinite;
+            pointer-events: none;
+            z-index: 5;
+        }
+
+        @keyframes expand {
+            0% { transform: scale(1); opacity: 1; }
+            100% { transform: scale(1.35); opacity: 0; }
+        }
+
+        #init-overlay {
+            position: fixed;
+            inset: 0;
+            background: radial-gradient(circle at center, #111827 0%, #05070a 100%);
+            z-index: 9999;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: opacity 0.5s ease-out;
+        }
+    </style>
+</head>
+<body id="bg-layer" class="min-h-screen flex flex-col items-center justify-center p-4 transition-all duration-1000">
+
+    <!-- Initialization Overlay -->
+    <div id="init-overlay">
+        <div class="text-center space-y-8">
+            <div class="w-24 h-24 glass rounded-3xl flex items-center justify-center mx-auto border-indigo-500/30 animate-pulse">
+                <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#6366f1" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10"/></svg>
+            </div>
+            <div class="space-y-2">
+                <h1 class="header-font text-3xl font-black italic tracking-widest text-white">SENTRY<span class="text-indigo-500">USB</span></h1>
+                <p class="text-slate-500 text-[10px] tracking-[0.2em] font-bold uppercase italic">Authorized Access Only</p>
+            </div>
+            <button onclick="startSystem()" class="bg-indigo-600 text-white font-black tracking-widest text-xs px-12 py-5 rounded-2xl shadow-2xl shadow-indigo-600/40 hover:bg-indigo-500 transition-all active:scale-95">
+                INITIALIZE CORE
+            </button>
+        </div>
+    </div>
+
+    <!-- App Content -->
+    <div class="w-full max-w-md space-y-6 relative z-10">
+        
+        <!-- Navbar -->
+        <div class="flex items-center justify-between px-2">
+            <div class="flex items-center gap-3">
+                <div id="led" class="w-2.5 h-2.5 rounded-full bg-slate-800 transition-all"></div>
+                <span id="mode-label" class="header-font text-[10px] font-bold tracking-widest opacity-60 uppercase">System Offline</span>
+            </div>
+            <div class="flex gap-2">
+                <button id="demo-btn" onclick="runDemo()" class="text-[9px] font-bold text-slate-400 bg-white/5 border border-white/10 px-4 py-2 rounded-full hover:bg-white/10 transition-all uppercase tracking-tighter">Demo Mode</button>
+                <button id="connect-btn" onclick="connectUSB()" class="bg-indigo-600 text-white px-5 py-2 rounded-full text-[9px] font-black tracking-widest border border-indigo-400/30 transition-all uppercase shadow-lg shadow-indigo-600/20">Link Uno</button>
+            </div>
+        </div>
+
+        <!-- Main Card -->
+        <div id="status-card" class="glass rounded-[4rem] p-12 text-center relative overflow-visible transition-all duration-700">
+            <div id="siren-fx" class="siren-wave"></div>
+            <div id="laser" class="laser-visual"></div>
+            
+            <div id="status-icon-ring" class="w-32 h-32 bg-gradient-to-b from-white/5 to-transparent rounded-full flex items-center justify-center mx-auto mb-10 border border-white/5 shadow-inner relative z-20 transition-all duration-500">
+                <div id="icon-svg" class="text-slate-600 scale-125 transition-all">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                </div>
+            </div>
+
+            <h2 id="status-title" class="header-font text-5xl font-black italic mb-3 tracking-tighter uppercase leading-none">Idle</h2>
+            <p id="status-desc" class="text-slate-500 text-xs font-semibold tracking-wide mb-10 italic">Awaiting hardware authorization...</p>
+
+            <div class="flex flex-col gap-3 relative z-30">
+                <button id="action-btn" disabled onclick="handleAction()" class="w-full py-5 rounded-3xl bg-slate-900 text-slate-700 font-bold text-sm tracking-widest border border-white/5 transition-all shadow-inner">
+                    LOCKED
+                </button>
+                <button id="reset-btn" onclick="resetAlarm()" class="hidden w-full py-5 rounded-3xl bg-white text-black font-black text-sm tracking-widest shadow-2xl active:scale-95 transition-all">
+                    RESET ALARM
+                </button>
+            </div>
+        </div>
+
+        <!-- Terminal Feed -->
+        <div id="terminal-box" onclick="handleTerminalClick()" class="glass rounded-[2.5rem] p-6 h-36 border-white/5 flex flex-col cursor-pointer hover:bg-white/5 transition-all">
+            <div class="flex justify-between items-center mb-4">
+                <div class="flex items-center gap-2">
+                    <div id="data-dot" class="w-1.5 h-1.5 bg-slate-700 rounded-full"></div>
+                    <span class="text-[9px] font-black uppercase tracking-[0.2em] text-slate-500">Data Stream</span>
+                </div>
+                <span id="audio-status" class="text-[8px] font-bold px-2 py-0.5 rounded bg-red-500/10 text-red-500 border border-red-500/20">AUDIO: LOCKED</span>
+            </div>
+            <div id="console" class="flex-1 overflow-y-auto font-mono text-[10px] text-indigo-400/60 space-y-1">
+                <div>> Kernel Stack Loaded...</div>
+                <div>> Awaiting communication protocol...</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Repeating Beep -->
+    <audio id="sfx-alarm" src="https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3" preload="auto"></audio>
+    <audio id="sfx-arm" src="https://assets.mixkit.co/active_storage/sfx/2568/2568-preview.mp3" preload="auto"></audio>
+
+    <script>
+        let port = null, isArmed = false, alarmActive = false, isDemo = false;
+        let clickCount = 0, clickTimer = null;
+
+        const els = {
+            body: document.getElementById('bg-layer'),
+            card: document.getElementById('status-card'),
+            title: document.getElementById('status-title'),
+            desc: document.getElementById('status-desc'),
+            btn: document.getElementById('action-btn'),
+            reset: document.getElementById('reset-btn'),
+            led: document.getElementById('led'),
+            laser: document.getElementById('laser'),
+            console: document.getElementById('console'),
+            icon: document.getElementById('icon-svg'),
+            audioAlarm: document.getElementById('sfx-alarm'),
+            audioArm: document.getElementById('sfx-arm'),
+            audioLabel: document.getElementById('audio-status'),
+            overlay: document.getElementById('init-overlay'),
+            sirenFx: document.getElementById('siren-fx'),
+            dataDot: document.getElementById('data-dot'),
+            modeLabel: document.getElementById('mode-label')
+        };
+
+        const icons = {
+            ready: `<svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#6366f1" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>`,
+            armed: `<svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#6366f1" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10"/></svg>`,
+            breach: `<svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="animate-pulse"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>`
+        };
+
+        function log(msg) {
+            const div = document.createElement('div');
+            div.innerText = `> ${msg}`;
+            els.console.appendChild(div);
+            els.console.scrollTop = els.console.scrollHeight;
+        }
+
+        window.startSystem = function() {
+            els.audioAlarm.play().then(() => {
+                els.audioAlarm.pause();
+                els.audioAlarm.currentTime = 0;
+                els.audioLabel.innerText = "AUDIO: READY";
+                els.audioLabel.className = "text-[8px] font-bold px-2 py-0.5 rounded bg-green-500/10 text-green-500 border border-green-500/20";
+            }).catch(() => {});
+            
+            els.overlay.style.opacity = '0';
+            setTimeout(() => els.overlay.style.display = 'none', 500);
+            log("Core initialized. Drivers authorized.");
+        };
+
+        window.runDemo = function() {
+            isDemo = true;
+            els.modeLabel.innerText = "Demo Simulation";
+            setReadyState("Virtual Simulation Link");
+            log("DEMO: Hardware simulation active.");
+        };
+
+        window.connectUSB = async function() {
+            try {
+                port = await navigator.serial.requestPort();
+                await port.open({ baudRate: 9600 });
+                isDemo = false;
+                els.modeLabel.innerText = "USB Node: 01";
+                setReadyState("USB Link Stable: Arduino Uno");
+                log("Serial connection established @ 9600.");
+                readLoop();
+            } catch (err) {
+                log("USB Error: " + err.message);
+            }
+        };
+
+        function setReadyState(desc) {
+            els.led.className = "w-2.5 h-2.5 rounded-full bg-indigo-500 shadow-[0_0_10px_#6366f1]";
+            els.title.innerText = "Ready";
+            els.desc.innerText = desc;
+            els.icon.innerHTML = icons.ready;
+            els.btn.disabled = false;
+            els.btn.innerText = "ARM PERIMETER";
+            els.btn.className = "w-full py-5 rounded-3xl bg-indigo-600 text-white font-bold text-sm tracking-widest shadow-2xl shadow-indigo-600/30 hover:bg-indigo-500 transition-all cursor-pointer";
+        }
+
+        async function readLoop() {
+            const decoder = new TextDecoder();
+            while (port.readable) {
+                const reader = port.readable.getReader();
+                try {
+                    while (true) {
+                        const { value, done } = await reader.read();
+                        if (done) break;
+                        const text = decoder.decode(value).trim();
+                        if (text) {
+                            els.dataDot.className = "w-1.5 h-1.5 bg-indigo-500 rounded-full animate-ping";
+                            log("IN: " + text);
+                            if (text.includes("INTRUSION") && isArmed) triggerAlarm();
+                            setTimeout(() => els.dataDot.className = "w-1.5 h-1.5 bg-indigo-500 rounded-full", 100);
+                        }
+                    }
+                } finally { reader.releaseLock(); }
+            }
+        }
+
+        window.handleAction = function() {
+            if (!isArmed) {
+                isArmed = true;
+                els.audioArm.play().catch(()=>{});
+                els.title.innerText = "Armed";
+                els.desc.innerText = "Grid monitoring active...";
+                els.card.classList.add('glow-armed');
+                els.icon.innerHTML = icons.armed;
+                els.laser.style.display = 'block';
+                els.btn.innerText = "DISARM";
+                els.btn.className = "w-full py-5 rounded-3xl bg-white/5 border border-white/10 text-slate-500 font-bold text-sm tracking-widest";
+                log("SECURITY: Perimeter hot.");
+
+                if (isDemo) {
+                    log("DEMO: Breach scheduled in 4s...");
+                    setTimeout(() => { if(isArmed) triggerAlarm(); }, 4000);
+                }
+            } else {
+                isArmed = false;
+                resetToReady();
+                log("SECURITY: Disarmed.");
+            }
+        };
+
+        function triggerAlarm() {
+            if (!isArmed || alarmActive) return;
+            alarmActive = true;
+            els.audioAlarm.loop = true;
+            els.audioAlarm.play().catch(() => {});
+            
+            els.card.classList.add('glow-alert');
+            els.title.innerText = "BREACH";
+            els.title.classList.add('text-red-500');
+            els.desc.innerText = "INTRUSION DETECTED!";
+            els.icon.innerHTML = icons.breach;
+            
+            els.laser.style.display = 'none';
+            els.sirenFx.style.display = 'block';
+            els.btn.classList.add('hidden');
+            els.reset.classList.remove('hidden');
+            log("ALERT: SYSTEM BREACHED.");
+        }
+
+        window.resetAlarm = function() {
+            alarmActive = false;
+            els.audioAlarm.pause();
+            els.audioAlarm.currentTime = 0;
+            els.audioAlarm.loop = false;
+            
+            els.card.classList.remove('glow-alert');
+            els.title.classList.remove('text-red-500');
+            els.sirenFx.style.display = 'none';
+            els.reset.classList.add('hidden');
+            els.btn.classList.remove('hidden');
+            resetToReady();
+            log("RESET: System restored to Ready.");
+        }
+
+        function resetToReady() {
+            isArmed = false;
+            els.title.innerText = "Ready";
+            els.icon.innerHTML = icons.ready;
+            els.card.classList.remove('glow-armed', 'glow-alert');
+            els.laser.style.display = 'none';
+            els.btn.innerText = "ARM PERIMETER";
+            els.btn.className = "w-full py-5 rounded-3xl bg-indigo-600 text-white font-black text-sm tracking-widest shadow-2xl";
+        }
+
+        window.addEventListener('keydown', (e) => {
+            if (e.key.toLowerCase() === 't') triggerAlarm();
+        });
+
+        window.handleTerminalClick = function() {
+            clickCount++;
+            clearTimeout(clickTimer);
+            if (clickCount === 3) {
+                log("TEST: Manual breach test triggered.");
+                triggerAlarm();
+                clickCount = 0;
+            } else {
+                clickTimer = setTimeout(() => { clickCount = 0; }, 500);
+            }
+        };
+    </script>
+</body>
+</html>
+
