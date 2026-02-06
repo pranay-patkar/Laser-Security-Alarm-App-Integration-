@@ -3,14 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SENTRY TACTICAL | Command Center</title>
-    <!-- Core Engine -->
-    <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
-    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
-    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <title>SENTRY TACTICAL | v2.0 ULTRA</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://unpkg.com/lucide@latest"></script>
-    
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Plus+Jakarta+Sans:wght@300;400;600;800&display=swap');
         
@@ -18,430 +12,337 @@
             --primary: #6366f1;
             --danger: #ff4757;
             --success: #10b981;
-            --bg: #020408;
+            --warning: #f59e0b;
+            --bg: #02040a;
         }
 
         body {
             background-color: var(--bg);
             color: #f8fafc;
             font-family: 'Plus Jakarta Sans', sans-serif;
-            overflow: hidden;
-            user-select: none;
+            margin: 0; padding: 0;
+            min-height: 100vh;
+            overflow-x: hidden;
+            background-image: 
+                radial-gradient(circle at 50% 0%, rgba(99, 102, 241, 0.15) 0%, transparent 50%),
+                url("data:image/svg+xml,%3Csvg width='80' height='80' viewBox='0 0 80 80' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M40 0l34.64 20v40L40 80 5.36 60v-40z' fill='none' stroke='%236366f1' stroke-width='0.5' stroke-opacity='0.03'/%3E%3C/svg%3E");
         }
 
         .header-font { font-family: 'Orbitron', sans-serif; }
 
-        /* Cinematic Glassmorphism */
         .glass {
-            background: rgba(13, 17, 23, 0.7);
-            backdrop-filter: blur(24px) saturate(180%);
-            border: 1px solid rgba(255, 255, 255, 0.06);
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7);
+            background: rgba(13, 17, 26, 0.85);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            box-shadow: 0 15px 35px -5px rgba(0, 0, 0, 0.6);
         }
 
-        /* Scanline Effect */
-        body::before {
-            content: " ";
-            position: fixed;
-            top: 0; left: 0; bottom: 0; right: 0;
-            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.15) 50%), 
-                        linear-gradient(90deg, rgba(255, 0, 0, 0.03), rgba(0, 255, 0, 0.01), rgba(0, 0, 255, 0.03));
-            z-index: 999;
-            background-size: 100% 3px, 3px 100%;
+        /* Scanline Overlay */
+        .scanlines {
+            position: fixed; inset: 0;
+            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.1) 50%);
+            z-index: 1000;
+            background-size: 100% 4px;
             pointer-events: none;
-            opacity: 0.4;
+            opacity: 0.2;
         }
 
-        /* State Glows */
-        .glow-indigo { box-shadow: 0 0 60px -10px rgba(99, 102, 241, 0.3); }
-        .glow-red { animation: alert-pulse 1s infinite; }
-        
-        @keyframes alert-pulse {
-            0%, 100% { box-shadow: 0 0 40px -10px rgba(255, 71, 87, 0.2); background-color: rgba(13, 17, 23, 0.8); }
-            50% { box-shadow: 0 0 80px -5px rgba(255, 71, 87, 0.5); background-color: rgba(45, 10, 15, 0.9); }
+        /* Breach Sequence */
+        .breach-alert {
+            animation: breach-pulse 0.5s infinite;
+        }
+        @keyframes breach-pulse {
+            0%, 100% { background: rgba(255, 71, 87, 0.1); border-color: var(--danger); }
+            50% { background: rgba(153, 27, 27, 0.4); border-color: #fff; }
         }
 
         .laser-visual {
             position: absolute;
-            width: 100%;
-            height: 2px;
+            width: 100%; height: 3px;
             background: var(--danger);
             top: 50%;
-            box-shadow: 0 0 20px var(--danger), 0 0 40px var(--danger);
-            animation: flicker 0.08s infinite;
-            z-index: 10;
+            box-shadow: 0 0 30px var(--danger), 0 0 60px var(--danger);
+            animation: flicker 0.1s infinite;
         }
+        @keyframes flicker { 0%, 100% { opacity: 0.4; } 50% { opacity: 1; } }
 
-        @keyframes flicker {
-            0% { opacity: 0.6; transform: scaleY(1); }
-            50% { opacity: 1; transform: scaleY(1.4); }
-            100% { opacity: 0.8; transform: scaleY(0.9); }
-        }
-
-        .custom-scrollbar::-webkit-scrollbar { width: 4px; }
-        .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 10px; }
-        
-        /* Interactive Buttons */
         .btn-premium {
-            position: relative;
-            overflow: hidden;
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative; overflow: hidden;
         }
+        .btn-premium:active { transform: scale(0.96); }
         .btn-premium::after {
-            content: '';
-            position: absolute;
-            top: 0; left: -100%;
+            content: ''; position: absolute; top: 0; left: -100%;
             width: 100%; height: 100%;
             background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);
             transition: 0.5s;
         }
         .btn-premium:hover::after { left: 100%; }
-        .btn-premium:active { transform: scale(0.96); }
+
+        .custom-scrollbar::-webkit-scrollbar { width: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: var(--primary); border-radius: 10px; }
+
+        .radar-sweep {
+            width: 100%; height: 100%;
+            border-radius: 50%;
+            background: conic-gradient(from 0deg, transparent 0%, rgba(99, 102, 241, 0.2) 50%, transparent 100%);
+            animation: sweep 4s linear infinite;
+        }
+        @keyframes sweep { to { transform: rotate(360deg); } }
+
+        .data-stream {
+            animation: stream-scroll 20s linear infinite;
+        }
+        @keyframes stream-scroll { from { transform: translateY(0); } to { transform: translateY(-50%); } }
     </style>
 </head>
-<body>
-    <div id="root"></div>
+<body class="p-4 md:p-8">
+    <div class="scanlines"></div>
 
-    <script type="text/babel">
-        const { useState, useEffect, useRef } = React;
+    <!-- STARTUP OVERLAY -->
+    <div id="boot-overlay" class="fixed inset-0 z-[2000] bg-slate-950 flex flex-col items-center justify-center text-center p-6">
+        <div class="w-32 h-32 glass rounded-3xl flex items-center justify-center mb-8 border-indigo-500/30 animate-pulse">
+            <svg width="60" height="60" viewBox="0 0 24 24" fill="none" stroke="#6366f1" stroke-width="1.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+        </div>
+        <h1 class="header-font text-6xl font-black italic text-white mb-2 uppercase">Sentry<span class="text-indigo-500">PRO</span></h1>
+        <p class="text-slate-600 text-[10px] font-bold uppercase tracking-[0.6em] mb-12">Hardware & Simulation Authorization</p>
+        <button onclick="initializeSystem()" class="px-20 py-6 bg-indigo-600 text-white rounded-2xl font-black tracking-[0.3em] text-sm shadow-2xl hover:bg-indigo-500 transition-all uppercase hover:scale-105">INITIALIZE HUB</button>
+    </div>
 
-        // Custom Component to safely render Lucide icons in a browser-Babel context
-        const Icon = ({ name, size = 16, className = "", color = "currentColor" }) => {
-            const iconRef = useRef(null);
-            useEffect(() => {
-                if (iconRef.current && lucide.icons[name]) {
-                    iconRef.current.innerHTML = lucide.icons[name].toSvg({
-                        width: size, height: size, class: className, stroke: color
-                    });
-                }
-            }, [name, size, className, color]);
-            return <span ref={iconRef} className="inline-flex items-center justify-center" />;
-        };
-
-        function App() {
-            const [isConnected, setIsConnected] = useState(false);
-            const [isArmed, setIsArmed] = useState(false);
-            const [isDemo, setIsDemo] = useState(false);
-            const [status, setStatus] = useState('offline'); // offline, ready, armed, alert
-            const [rawVal, setRawVal] = useState(0);
-            const [history, setHistory] = useState(new Array(50).fill(0));
-            const [logs, setLogs] = useState([]);
-            const [activeTab, setActiveTab] = useState('dashboard');
-            const [initialized, setInitialized] = useState(false);
-            const [isMuted, setIsMuted] = useState(false);
-            const [customAudioName, setCustomAudioName] = useState('Tactical_Pulse_v1.wav');
-
-            const portRef = useRef(null);
-            const readerRef = useRef(null);
-            const alarmRef = useRef(null);
-            const armRef = useRef(null);
-            const fileInputRef = useRef(null);
-            const DEFAULT_ALARM = 'https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3';
-
-            useEffect(() => {
-                alarmRef.current = new Audio(DEFAULT_ALARM);
-                armRef.current = new Audio('https://assets.mixkit.co/active_storage/sfx/2568/2568-preview.mp3');
-                alarmRef.current.loop = true;
-            }, []);
-
-            // Simulation Logic
-            useEffect(() => {
-                let interval;
-                if (isDemo) {
-                    interval = setInterval(() => {
-                        const jitter = Math.floor(Math.random() * 60) + 900;
-                        setRawVal(jitter);
-                        setHistory(prev => [...prev.slice(1), jitter]);
-                    }, 100);
-                }
-                return () => clearInterval(interval);
-            }, [isDemo]);
-
-            const addLog = (category, message, level) => {
-                setLogs(prev => [{
-                    id: Date.now(),
-                    time: new Date().toLocaleTimeString([], { hour12: false }),
-                    category, message, level
-                }, ...prev].slice(0, 50));
-            };
-
-            const startApp = () => {
-                setInitialized(true);
-                [alarmRef.current, armRef.current].forEach(a => {
-                    a.play().then(() => { a.pause(); a.currentTime = 0; }).catch(()=>{});
-                });
-            };
-
-            const connectUSB = async () => {
-                try {
-                    const port = await navigator.serial.requestPort();
-                    await port.open({ baudRate: 9600 });
-                    portRef.current = port;
-                    setIsConnected(true);
-                    setIsDemo(false);
-                    setStatus('ready');
-                    addLog('SYSTEM', 'HARDWARE LINK ESTABLISHED', 'info');
-                    readSerial();
-                } catch (err) {
-                    addLog('ERROR', 'LINK ABORTED: ' + err.message, 'critical');
-                }
-            };
-
-            const readSerial = async () => {
-                const decoder = new TextDecoder();
-                while (portRef.current?.readable) {
-                    readerRef.current = portRef.current.readable.getReader();
-                    try {
-                        while (true) {
-                            const { value, done } = await readerRef.current.read();
-                            if (done) break;
-                            const text = decoder.decode(value).trim();
-                            const valMatch = text.match(/\[VAL:(\d+)\]/);
-                            if (valMatch) {
-                                const num = parseInt(valMatch[1]);
-                                setRawVal(num);
-                                setHistory(prev => [...prev.slice(1), num]);
-                            }
-                            if (text.includes("INTRUSION") && isArmed) {
-                                setStatus('alert');
-                                if (!isMuted) alarmRef.current.play().catch(()=>{});
-                                addLog('SECURITY', 'PERIMETER VIOLATION DETECTED', 'critical');
-                            }
-                        }
-                    } catch (err) {
-                        setIsConnected(false);
-                        setStatus('offline');
-                    } finally { readerRef.current.releaseLock(); }
-                }
-            };
-
-            const toggleArm = () => {
-                if (status === 'alert') return;
-                const next = !isArmed;
-                setIsArmed(next);
-                setStatus(next ? 'armed' : 'ready');
-                if (!isMuted) armRef.current.play().catch(()=>{});
-                addLog('PROTOCOL', next ? 'GRID SECURITY ENGAGED' : 'SYSTEM DISARMED', 'info');
-                
-                if (isDemo && next) {
-                    setTimeout(() => {
-                        setStatus(curr => { 
-                            if(curr === 'armed') { 
-                                if (!isMuted) alarmRef.current.play().catch(()=>{});
-                                addLog('SIMULATION', 'VIRTUAL BREACH TRIGGERED', 'critical');
-                                return 'alert'; 
-                            } 
-                            return curr; 
-                        });
-                    }, 4000);
-                }
-            };
-
-            const handleAudioUpload = (event) => {
-                const file = event.target.files[0];
-                if (file) {
-                    const url = URL.createObjectURL(file);
-                    alarmRef.current.pause();
-                    alarmRef.current.src = url;
-                    alarmRef.current.load();
-                    setCustomAudioName(file.name);
-                    addLog('AUDIO', `CUSTOM TRACK UPLOADED: ${file.name}`, 'info');
-                    // Quick preview unlock
-                    alarmRef.current.play().then(() => {
-                        setTimeout(() => { alarmRef.current.pause(); alarmRef.current.currentTime = 0; }, 1000);
-                    });
-                }
-            };
-
-            const resetAudio = () => {
-                alarmRef.current.pause();
-                alarmRef.current.src = DEFAULT_ALARM;
-                alarmRef.current.load();
-                setCustomAudioName('Tactical_Pulse_v1.wav');
-                addLog('AUDIO', 'RESTORED FACTORY DEFAULT SIREN', 'info');
-            };
-
-            if (!initialized) {
-                return (
-                    <div className="min-h-screen flex flex-col items-center justify-center p-6 text-center">
-                        <div className="relative mb-12">
-                            <div className="absolute inset-0 bg-indigo-500 blur-[60px] opacity-20"></div>
-                            <div className="w-32 h-32 glass rounded-[2.5rem] flex items-center justify-center border-indigo-500/30 relative z-10 animate-pulse">
-                                <Icon name="shield" size={64} color="#6366f1" />
-                            </div>
-                        </div>
-                        <h1 className="header-font text-5xl font-black italic tracking-tighter uppercase mb-4 text-white">Sentry<span className="text-indigo-500">Tactical</span></h1>
-                        <p className="text-slate-500 text-xs font-bold uppercase tracking-[0.4em] mb-16 italic opacity-70">Peripheral Interface v2.0 // Secure Link</p>
-                        <button onClick={startApp} className="btn-premium bg-indigo-600 text-white px-20 py-6 rounded-3xl font-black tracking-[0.2em] text-sm shadow-2xl hover:bg-indigo-500 hover:scale-105 transition-all uppercase">Initialize Command Core</button>
-                    </div>
-                );
-            }
-
-            return (
-                <div className="min-h-screen flex flex-col bg-slate-950">
-                    {/* Header */}
-                    <header className="p-6 border-b border-white/5 bg-slate-900/40 backdrop-blur-3xl flex justify-between items-center z-50">
-                        <div className="flex items-center gap-6">
-                            <div className={`w-3.5 h-3.5 rounded-full transition-all duration-700 ${status === 'alert' ? 'bg-red-500 shadow-[0_0_20px_#ef4444]' : isConnected ? 'bg-emerald-500 shadow-[0_0_15px_#10b981]' : 'bg-slate-700'}`} />
-                            <h1 className="header-font font-black italic tracking-tighter text-2xl uppercase leading-none text-white">Sentry<span className="text-indigo-500">Pro</span></h1>
-                        </div>
-                        <div className="flex items-center gap-3">
-                            <button onClick={() => setIsDemo(!isDemo)} className={`px-5 py-2.5 rounded-2xl text-[10px] font-black border transition-all uppercase tracking-widest ${isDemo ? 'bg-amber-500/10 border-amber-500/40 text-amber-500' : 'bg-white/5 border-white/10 text-slate-500 hover:text-white'}`}>
-                                {isDemo ? 'Simulation Active' : 'Demo Mode'}
-                            </button>
-                            {!isConnected && (
-                                <button onClick={connectUSB} className="btn-premium bg-indigo-600 px-6 py-2.5 rounded-2xl text-[10px] font-black uppercase tracking-widest flex items-center gap-2 shadow-lg shadow-indigo-600/20 text-white">
-                                    <Icon name="usb" size={14} /> Link Hardware
-                                </button>
-                            )}
-                            <button onClick={() => setIsMuted(!isMuted)} className="p-3 rounded-2xl border border-white/5 text-slate-500 hover:text-white transition-all">
-                                <Icon name={isMuted ? "bell-off" : "bell"} size={20} />
-                            </button>
-                        </div>
-                    </header>
-
-                    {/* Main UI */}
-                    <main className="flex-1 overflow-y-auto p-4 md:p-8 relative z-10 max-w-[1400px] mx-auto w-full">
-                        {activeTab === 'dashboard' ? (
-                            <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 h-full">
-                                
-                                {/* Left Column: Status & Visuals */}
-                                <div className="lg:col-span-8 space-y-8">
-                                    {/* Primary State Card */}
-                                    <div className={`rounded-[4.5rem] p-16 text-center transition-all duration-1000 border-2 relative overflow-hidden ${status === 'alert' ? 'glow-red border-red-500' : status === 'armed' ? 'glow-indigo border-indigo-500/40' : 'bg-slate-900/40 border-white/5'}`}>
-                                        {status === 'armed' && <div className="laser-visual" />}
-                                        
-                                        <div className="flex justify-center mb-12">
-                                            <div className={`p-12 rounded-full transition-all duration-1000 ${status === 'alert' ? 'bg-red-500 shadow-[0_0_60px_#ef4444]' : status === 'armed' ? 'bg-indigo-600 shadow-[0_0_40px_#6366f1]' : 'bg-slate-800'}`}>
-                                                <Icon name={status === 'alert' ? "shield-alert" : status === 'armed' ? "shield-check" : "shield"} size={72} color="white" />
-                                            </div>
-                                        </div>
-
-                                        <h2 className="header-font text-8xl font-black italic tracking-tighter uppercase mb-6 leading-none text-white tracking-[-0.05em]">
-                                            {status === 'alert' ? 'Breach' : status === 'armed' ? 'Armed' : 'Standby'}
-                                        </h2>
-                                        
-                                        <p className="text-slate-400 text-sm font-semibold mb-16 max-w-sm mx-auto leading-relaxed tracking-wide uppercase opacity-60">
-                                            {status === 'alert' ? 'CRITICAL: PERIMETER SCANNER REPORTING PHYSICAL INTERFERENCE.' : status === 'armed' ? 'GRID ACTIVE: MONITORING LIVE TELEMETRY STREAM.' : 'IDLE: AWAITING ENCRYPTION KEY AND HARDWARE AUTHORIZATION.'}
-                                        </p>
-
-                                        <div className="flex gap-6 max-w-sm mx-auto">
-                                            {status === 'alert' ? (
-                                                <button onClick={() => { setStatus('armed'); alarmRef.current.pause(); alarmRef.current.currentTime=0; }} className="btn-premium flex-1 py-7 bg-white text-slate-950 font-black rounded-[2.5rem] shadow-2xl text-sm uppercase tracking-[0.3em]">Reset Security</button>
-                                            ) : (
-                                                <button disabled={!isConnected && !isDemo} onClick={toggleArm} className={`btn-premium flex-1 py-7 rounded-[2.5rem] font-black tracking-[0.3em] text-sm transition-all shadow-xl ${(!isConnected && !isDemo) ? 'bg-slate-800 text-slate-600 cursor-not-allowed' : status === 'armed' ? 'bg-slate-900 text-red-500 border border-red-500/30' : 'bg-indigo-600 text-white'}`}>
-                                                    {status === 'armed' ? 'DISARM GRID' : 'ARM PERIMETER'}
-                                                </button>
-                                            )}
-                                        </div>
-                                    </div>
-
-                                    {/* Telemetry Visualizer */}
-                                    <div className="glass rounded-[3.5rem] p-10">
-                                        <div className="flex justify-between items-center mb-10 text-[11px] font-black uppercase tracking-[0.4em] text-slate-500 italic">
-                                            <div className="flex items-center gap-3"><Icon name="activity" color="#6366f1" size={16}/> Live Telemetry Diagnostics</div>
-                                            <span className="text-indigo-400 monofont text-2xl font-black">{String(rawVal).padStart(4, '0')}</span>
-                                        </div>
-                                        <div className="h-40 flex items-end gap-1.5 px-2">
-                                            {history.map((val, i) => (
-                                                <div key={i} className={`flex-1 rounded-t-xl transition-all duration-500 ${val < 500 ? 'bg-red-500/60' : 'bg-indigo-500/30'}`} style={{ height: `${(val / 1023) * 100}%` }}>
-                                                    <div className="w-full h-1 bg-white/20 rounded-full blur-[2px]"></div>
-                                                </div>
-                                            ))}
-                                        </div>
-                                    </div>
-                                </div>
-
-                                {/* Right Column: Logs */}
-                                <div className="lg:col-span-4 glass rounded-[4rem] flex flex-col h-[850px] overflow-hidden">
-                                    <div className="p-10 border-b border-white/5 flex justify-between items-center">
-                                        <div className="flex items-center gap-4">
-                                            <Icon name="terminal" size={18} color="#6366f1" />
-                                            <h3 className="text-xs font-black uppercase tracking-[0.3em] text-white">Event Stream</h3>
-                                        </div>
-                                        <button onClick={() => setLogs([])} className="text-[10px] font-bold text-slate-600 hover:text-red-400 transition-colors uppercase">Flush</button>
-                                    </div>
-                                    <div className="flex-1 overflow-y-auto p-8 space-y-6 custom-scrollbar font-mono">
-                                        {logs.length === 0 ? (
-                                            <div className="h-full flex flex-col items-center justify-center text-slate-800 italic uppercase tracking-[0.4em] text-[10px]">Awaiting Uplink...</div>
-                                        ) : logs.map(log => (
-                                            <div key={log.id} className="bg-white/5 p-6 rounded-[2rem] border border-white/5 animate-in slide-in-from-right-8 duration-500">
-                                                <div className="flex justify-between items-center mb-3 text-[9px] font-bold tracking-widest uppercase">
-                                                    <span className={log.level === 'critical' ? 'text-red-500' : 'text-indigo-500'}>{log.category}</span>
-                                                    <span className="text-slate-600">{log.time}</span>
-                                                </div>
-                                                <p className={`text-[12px] font-bold leading-relaxed tracking-tight ${log.level === 'critical' ? 'text-red-200' : 'text-slate-200'}`}>{log.message}</p>
-                                            </div>
-                                        ))}
-                                    </div>
-                                </div>
-                            </div>
-                        ) : (
-                            /* Settings Tab */
-                            <div className="max-w-3xl mx-auto glass p-16 rounded-[4.5rem] space-y-12 animate-in fade-in slide-in-from-bottom-12 duration-700">
-                                <h2 className="header-font text-4xl font-black italic uppercase tracking-tighter text-white">Hardware Protocol</h2>
-                                <div className="grid grid-cols-1 gap-10">
-                                    <div className="bg-white/5 p-10 rounded-[3rem] border border-white/5 space-y-8">
-                                        <div className="flex items-center gap-5">
-                                            <Icon name="volume-2" color="#6366f1" size={28} />
-                                            <h3 className="text-sm font-black uppercase tracking-widest text-white">Alarm Calibration</h3>
-                                        </div>
-                                        <div className="space-y-6">
-                                            <div className="p-6 rounded-[2rem] bg-black/50 border border-white/5 shadow-inner">
-                                                <span className="text-[10px] font-black text-slate-600 uppercase block mb-3 tracking-[0.2em]">Active Sound File</span>
-                                                <span className="text-xs font-mono text-indigo-400 truncate block italic font-bold">{customAudioName}</span>
-                                            </div>
-                                            <div className="grid grid-cols-2 gap-4">
-                                                <input 
-                                                    type="file" 
-                                                    ref={fileInputRef} 
-                                                    className="hidden" 
-                                                    accept="audio/*" 
-                                                    onChange={handleAudioUpload} 
-                                                />
-                                                <button 
-                                                    onClick={() => fileInputRef.current.click()} 
-                                                    className="btn-premium py-6 bg-indigo-600/10 border border-indigo-500/30 rounded-3xl text-[11px] font-black uppercase text-indigo-400 hover:bg-indigo-600/20 transition-all flex items-center justify-center gap-3 tracking-widest"
-                                                >
-                                                    <Icon name="upload" size={16}/> Upload Asset
-                                                </button>
-                                                <button 
-                                                    onClick={resetAudio}
-                                                    className="btn-premium py-6 bg-white/5 border border-white/10 rounded-3xl text-[11px] font-black uppercase text-slate-500 hover:bg-white/10 transition-all flex items-center justify-center gap-3 tracking-widest"
-                                                >
-                                                    <Icon name="refresh-cw" size={16}/> Reset Default
-                                                </button>
-                                            </div>
-                                            <button 
-                                                onClick={() => { alarmRef.current.currentTime = 0; alarmRef.current.play(); setTimeout(()=> { alarmRef.current.pause(); alarmRef.current.currentTime=0; }, 3000); }} 
-                                                className="btn-premium w-full py-6 bg-white text-slate-950 rounded-3xl text-[11px] font-black uppercase shadow-2xl tracking-widest transition-all"
-                                            >
-                                                Test Signal Output
-                                            </button>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        )}
-                    </main>
-
-                    {/* Navigation */}
-                    <footer className="p-8 pt-3 bg-slate-900/60 backdrop-blur-3xl border-t border-white/5 z-50">
-                        <div className="max-w-md mx-auto flex justify-around items-center">
-                            <button onClick={() => setActiveTab('dashboard')} className={`p-6 rounded-[2.5rem] transition-all duration-300 ${activeTab === 'dashboard' ? 'text-indigo-400 bg-indigo-500/10 shadow-[inset_0_0_20px_rgba(99,102,241,0.1)]' : 'text-slate-600 hover:text-slate-400'}`}>
-                                <Icon name="zap" size={28} />
-                            </button>
-                            <button onClick={() => setActiveTab('settings')} className={`p-6 rounded-[2.5rem] transition-all duration-300 ${activeTab === 'settings' ? 'text-indigo-400 bg-indigo-500/10 shadow-[inset_0_0_20px_rgba(99,102,241,0.1)]' : 'text-slate-600 hover:text-slate-400'}`}>
-                                <Icon name="settings" size={28} />
-                            </button>
-                        </div>
-                    </footer>
+    <!-- MAIN INTERFACE -->
+    <div class="max-w-[1700px] mx-auto space-y-6">
+        
+        <!-- HEADER -->
+        <header class="glass rounded-[2.5rem] p-6 flex flex-col lg:flex-row items-center justify-between gap-6 border-white/5">
+            <div class="flex items-center gap-6">
+                <div id="status-led" class="w-4 h-4 rounded-full bg-slate-800 transition-all duration-500 shadow-inner"></div>
+                <div class="flex flex-col">
+                    <h2 class="header-font font-black italic text-3xl uppercase text-white leading-none">Tactical<span class="text-indigo-500">Node</span></h2>
+                    <span id="connection-status" class="text-[9px] font-bold text-slate-500 uppercase tracking-widest mt-1">Uplink: Standby</span>
                 </div>
-            );
+            </div>
+
+            <div class="flex gap-10">
+                <div class="flex flex-col items-center">
+                    <span class="text-[9px] font-black text-slate-600 uppercase tracking-widest">Simulation</span>
+                    <span id="demo-badge" class="text-[10px] font-mono font-bold text-slate-500 bg-white/5 px-3 py-1 rounded-full mt-1 border border-white/5">INACTIVE</span>
+                </div>
+                <div class="flex flex-col items-center">
+                    <span class="text-[9px] font-black text-slate-600 uppercase tracking-widest">Encryption</span>
+                    <span class="text-[10px] font-mono font-bold text-emerald-500 mt-1">AES-256-GCM</span>
+                </div>
+                <div class="flex flex-col items-center">
+                    <span class="text-[9px] font-black text-slate-600 uppercase tracking-widest">System Load</span>
+                    <span id="cpu-load" class="text-[10px] font-mono font-bold text-indigo-400 mt-1">0%</span>
+                </div>
+            </div>
+
+            <div class="flex gap-4">
+                <button id="demo-btn" onclick="toggleDemo()" class="btn-premium px-6 py-3 border border-indigo-500/30 text-indigo-400 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-indigo-600/10">Toggle Demo</button>
+                <button id="usb-btn" onclick="connectHardware()" class="btn-premium flex items-center gap-3 px-8 py-3 bg-indigo-600 text-white rounded-xl text-xs font-black uppercase tracking-widest shadow-lg shadow-indigo-600/30">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M10 7V3h4v4M4 20h16M12 7v13"/></svg>
+                    Link Uno
+                </button>
+            </div>
+        </header>
+
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+            
+            <!-- LEFT PANEL: Audio Center & Gauges -->
+            <div class="lg:col-span-3 space-y-6">
+                <div class="glass p-8 rounded-[3.5rem] border-indigo-500/20 relative overflow-hidden">
+                    <div class="absolute top-0 right-0 p-6 opacity-5 pointer-events-none">
+                        <svg width="120" height="120" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="1"><path d="M9 18V5l12-2v13M9 18a3 3 0 1 1-6 0 3 3 0 0 1 6 0zm12-2a3 3 0 1 1-6 0 3 3 0 0 1 6 0z"/></svg>
+                    </div>
+                    <div class="flex items-center gap-4 mb-10">
+                        <div class="p-3 bg-indigo-600/20 rounded-2xl border border-indigo-500/20">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#6366f1" stroke-width="2.5"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
+                        </div>
+                        <h3 class="text-xs font-black uppercase tracking-[0.2em] text-white">Audio Assets</h3>
+                    </div>
+
+                    <div class="p-6 bg-black/60 rounded-[2.5rem] border border-white/5 shadow-inner mb-8">
+                        <span class="text-[9px] font-black text-slate-700 uppercase block mb-2 tracking-[0.3em]">Master Siren Track</span>
+                        <span id="track-name" class="text-xs font-mono font-bold text-indigo-400 truncate block">Tactical_Pulse.wav</span>
+                    </div>
+
+                    <input type="file" id="audio-upload" class="hidden" accept="audio/*">
+                    <button onclick="document.getElementById('audio-upload').click()" class="btn-premium w-full py-10 bg-indigo-600 border border-indigo-400/40 rounded-[3rem] text-[13px] font-black uppercase text-white shadow-2xl hover:bg-indigo-500 transition-all flex flex-col items-center gap-4 tracking-[0.3em]">
+                        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M17 8l-5-5-5 5M12 3v12"/></svg>
+                        UPLOAD ASSET
+                    </button>
+                </div>
+
+                <div class="glass p-8 rounded-[3rem] border-white/5 space-y-8">
+                    <span class="text-[9px] font-black text-slate-500 uppercase tracking-widest block">System Diagnostics</span>
+                    <div class="space-y-8">
+                        <div class="space-y-3">
+                            <div class="flex justify-between text-[10px] font-bold uppercase"><span class="text-slate-400 tracking-widest">Grid Integrity</span><span id="integrity-pct" class="text-emerald-400">100%</span></div>
+                            <div class="h-1.5 bg-slate-900 rounded-full overflow-hidden border border-white/5"><div id="integrity-bar" class="h-full bg-emerald-500 w-full transition-all duration-1000"></div></div>
+                        </div>
+                        <div class="space-y-3">
+                            <div class="flex justify-between text-[10px] font-bold uppercase"><span class="text-slate-400 tracking-widest">Core Temp</span><span id="temp-val" class="text-indigo-400">32°C</span></div>
+                            <div class="h-1.5 bg-slate-900 rounded-full overflow-hidden border border-white/5"><div id="temp-bar" class="h-full bg-indigo-500 w-[32%] transition-all duration-1000"></div></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- CENTER PANEL: HUD CORE -->
+            <div class="lg:col-span-6 space-y-8">
+                <div id="status-card" class="rounded-[5rem] p-16 text-center transition-all duration-1000 border-2 border-white/10 glass relative overflow-hidden min-h-[550px] flex flex-col items-center justify-center">
+                    <div id="laser-line" class="hidden laser-visual"></div>
+                    
+                    <!-- Radar/Scan Visualizer Overlay -->
+                    <div class="absolute inset-0 opacity-20 pointer-events-none">
+                        <div class="radar-sweep"></div>
+                        <div class="absolute inset-0 border border-indigo-500/20 rounded-full scale-[0.8]"></div>
+                        <div class="absolute inset-0 border border-indigo-500/10 rounded-full scale-[0.5]"></div>
+                        <div class="absolute top-1/2 left-0 w-full h-[1px] bg-indigo-500/10"></div>
+                        <div class="absolute left-1/2 top-0 h-full w-[1px] bg-indigo-500/10"></div>
+                    </div>
+
+                    <div id="status-icon-bg" class="p-14 rounded-full bg-indigo-500/5 mb-10 transition-all duration-500 relative z-10">
+                        <svg id="status-icon" width="90" height="90" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="1.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                    </div>
+
+                    <h2 id="main-status-text" class="header-font text-9xl font-black italic tracking-tighter uppercase text-white leading-none mb-6 relative z-10">Idle</h2>
+                    <p id="sub-status-text" class="text-slate-500 text-[10px] font-bold uppercase tracking-[0.7em] mb-12 italic opacity-60 relative z-10">System authorization protocol required</p>
+
+                    <button id="arm-btn" onclick="toggleArming()" class="btn-premium w-full max-w-sm py-9 bg-white text-black rounded-[3rem] font-black text-sm tracking-[0.4em] shadow-2xl transition-all uppercase relative z-10">Engage Perimeter</button>
+                </div>
+
+                <!-- Live Diagnostics Canvas -->
+                <div class="glass rounded-[4rem] p-10 relative overflow-hidden">
+                    <div class="flex justify-between items-center mb-10 relative z-10">
+                        <div class="flex flex-col gap-1">
+                            <span class="text-[11px] font-black uppercase tracking-[0.3em] text-slate-500 flex items-center gap-3 italic">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#6366f1" stroke-width="2.5"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+                                Frequency Telemetry
+                            </span>
+                            <span class="text-[8px] font-bold text-slate-700 tracking-[0.2em] uppercase">Real-time Node_A0 Signal Output</span>
+                        </div>
+                        <span id="raw-val-display" class="text-indigo-400 monofont text-5xl font-black leading-none">0000</span>
+                    </div>
+                    <canvas id="telemetry-canvas" class="w-full h-44"></canvas>
+                </div>
+            </div>
+
+            <!-- RIGHT PANEL: Event Log & Biometric Data -->
+            <div class="lg:col-span-3 space-y-6">
+                <div class="glass rounded-[3.5rem] flex flex-col h-[650px] overflow-hidden border-white/5">
+                    <div class="p-10 border-b border-white/5 flex justify-between items-center bg-slate-900/40">
+                        <div class="flex flex-col">
+                            <h3 class="text-xs font-black uppercase tracking-widest text-white">Event Stream</h3>
+                            <span class="text-[8px] font-bold text-indigo-500 uppercase tracking-widest mt-1">Encrypted Logs</span>
+                        </div>
+                    </div>
+                    <div id="terminal" class="flex-1 overflow-y-auto p-8 space-y-6 custom-scrollbar bg-black/40 font-mono">
+                        <div class="opacity-10 text-[10px] uppercase text-center mt-20">Waiting for Data Uplink...</div>
+                    </div>
+                </div>
+
+                <div class="glass p-8 rounded-[3rem] border-white/5 h-48 overflow-hidden relative">
+                    <span class="text-[9px] font-black text-slate-600 uppercase tracking-widest block mb-4">Biometric Stream</span>
+                    <div id="biometric-list" class="space-y-2 font-mono text-[8px] text-indigo-500/50 uppercase leading-none data-stream">
+                        <!-- Simulated Data Lines -->
+                        <div>Handshake_Init: User_Admin</div><div>UID: 0x827A-991B</div><div>Protocol: AES_Secure</div><div>Node: Alpha_Center</div>
+                        <div>Handshake_Init: User_Admin</div><div>UID: 0x827A-991B</div><div>Protocol: AES_Secure</div><div>Node: Alpha_Center</div>
+                        <div>Handshake_Init: User_Admin</div><div>UID: 0x827A-991B</div><div>Protocol: AES_Secure</div><div>Node: Alpha_Center</div>
+                        <div>Handshake_Init: User_Admin</div><div>UID: 0x827A-991B</div><div>Protocol: AES_Secure</div><div>Node: Alpha_Center</div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <script>
+        // --- State Variables ---
+        let isConnected = false;
+        let isArmed = false;
+        let isMuted = false;
+        let isDemo = false;
+        let alarmTrack = new Audio('https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3');
+        let port, reader;
+        let telemetryData = new Array(120).fill(0);
+        let rawValue = 0;
+        let cpuLoad = 0;
+
+        const canvas = document.getElementById('telemetry-canvas');
+        const ctx = canvas.getContext('2d');
+
+        function initializeSystem() {
+            document.getElementById('boot-overlay').classList.add('hidden');
+            addLog("SYSTEM CORE INITIALIZED", "info");
+            requestAnimationFrame(animateTelemetry);
+            
+            // Background Data Ticker
+            setInterval(updateGauges, 1000);
         }
 
-        const root = ReactDOM.createRoot(document.getElementById('root'));
-        root.render(<App />);
-    </script>
-</body>
-</html>
+        function toggleDemo() {
+            isDemo = !isDemo;
+            const badge = document.getElementById('demo-badge');
+            badge.innerText = isDemo ? "ACTIVE" : "INACTIVE";
+            badge.className = isDemo ? "text-[10px] font-mono font-bold text-amber-500 bg-amber-500/10 px-3 py-1 rounded-full mt-1 border border-amber-500/20" : "text-[10px] font-mono font-bold text-slate-500 bg-white/5 px-3 py-1 rounded-full mt-1 border border-white/5";
+            addLog(isDemo ? "NEURAL SIMULATION STARTED" : "SIMULATION ABORTED", isDemo ? "success" : "info");
+        }
+
+        async function connectHardware() {
+            try {
+                port = await navigator.serial.requestPort();
+                await port.open({ baudRate: 9600 });
+                isConnected = true;
+                isDemo = false; // Disable demo if real hardware connects
+                updateUI('ready');
+                addLog("NODE_LINK_01 ESTABLISHED", "success");
+                readSerial();
+            } catch (e) {
+                addLog("HARDWARE REJECTED: " + e.message, "error");
+            }
+        }
+
+        async function readSerial() {
+            const decoder = new TextDecoder();
+            while (port.readable) {
+                reader = port.readable.getReader();
+                try {
+                    while (true) {
+                        const { value, done } = await reader.read();
+                        if (done) break;
+                        const text = decoder.decode(value);
+                        
+                        // Parse [VAL:xxx]
+                        const match = text.match(/\[VAL:(\d+)\]/);
+                        if (match) {
+                            rawValue = parseInt(match[1]);
+                            telemetryData.push(rawValue);
+                            telemetryData.shift();
+                        }
+
+                        if (text.includes("INTRUSION") && isArmed) {
+                            triggerAlarm();
+                        }
+                    }
+                } catch (e) {
+                    isConnected = false;
+                    updateUI('offline');
+                } finally {
+                    reader.releaseLock();
+                }
+            }
+        }
+
+        function triggerAlarm() {
+            if (document.getElementById('main-status-text').innerText === "Breach") return;
+            updateUI('alert');
+            if (!isMuted) {
+                alarmTrack.loop = true;
+                alarmTrack.play();
+            }
+            addLog("ALERT: PERIMETER BREACH", "error");
+        }
+
+        function toggleArming() {
+        
