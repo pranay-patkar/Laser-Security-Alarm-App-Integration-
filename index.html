@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SENTRY TACTICAL | v2.0 ULTRA</title>
+    <title>SENTRY TACTICAL | v3.0 ELITE</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Plus+Jakarta+Sans:wght@300;400;600;800&display=swap');
@@ -12,8 +12,7 @@
             --primary: #6366f1;
             --danger: #ff4757;
             --success: #10b981;
-            --warning: #f59e0b;
-            --bg: #02040a;
+            --bg: #010206;
         }
 
         body {
@@ -21,20 +20,20 @@
             color: #f8fafc;
             font-family: 'Plus Jakarta Sans', sans-serif;
             margin: 0; padding: 0;
-            min-height: 100vh;
-            overflow-x: hidden;
+            height: 100vh;
+            overflow: hidden;
             background-image: 
-                radial-gradient(circle at 50% 0%, rgba(99, 102, 241, 0.15) 0%, transparent 50%),
-                url("data:image/svg+xml,%3Csvg width='80' height='80' viewBox='0 0 80 80' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M40 0l34.64 20v40L40 80 5.36 60v-40z' fill='none' stroke='%236366f1' stroke-width='0.5' stroke-opacity='0.03'/%3E%3C/svg%3E");
+                radial-gradient(circle at 50% 50%, rgba(99, 102, 241, 0.1) 0%, transparent 80%),
+                url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M50 0l43.3 25v50L50 100 6.7 75v-50z' fill='none' stroke='%236366f1' stroke-width='0.5' stroke-opacity='0.05'/%3E%3C/svg%3E");
         }
 
         .header-font { font-family: 'Orbitron', sans-serif; }
 
         .glass {
-            background: rgba(13, 17, 26, 0.85);
+            background: rgba(10, 14, 23, 0.9);
             backdrop-filter: blur(20px);
             border: 1px solid rgba(255, 255, 255, 0.05);
-            box-shadow: 0 15px 35px -5px rgba(0, 0, 0, 0.6);
+            box-shadow: 0 20px 50px -10px rgba(0, 0, 0, 0.8);
         }
 
         /* Scanline Overlay */
@@ -44,248 +43,226 @@
             z-index: 1000;
             background-size: 100% 4px;
             pointer-events: none;
-            opacity: 0.2;
+            opacity: 0.1;
         }
 
-        /* Breach Sequence */
-        .breach-alert {
-            animation: breach-pulse 0.5s infinite;
-        }
-        @keyframes breach-pulse {
+        /* Alert Animations */
+        .breach-active { animation: breach-strobe 0.4s infinite; }
+        @keyframes breach-strobe {
             0%, 100% { background: rgba(255, 71, 87, 0.1); border-color: var(--danger); }
-            50% { background: rgba(153, 27, 27, 0.4); border-color: #fff; }
+            50% { background: rgba(255, 71, 87, 0.4); border-color: #fff; }
         }
 
         .laser-visual {
             position: absolute;
-            width: 100%; height: 3px;
+            width: 100%; height: 2px;
             background: var(--danger);
             top: 50%;
-            box-shadow: 0 0 30px var(--danger), 0 0 60px var(--danger);
-            animation: flicker 0.1s infinite;
+            box-shadow: 0 0 30px var(--danger);
+            animation: laser-flicker 0.08s infinite;
+            z-index: 20;
         }
-        @keyframes flicker { 0%, 100% { opacity: 0.4; } 50% { opacity: 1; } }
+        @keyframes laser-flicker { 0% { opacity: 0.3; } 100% { opacity: 1; } }
 
         .btn-premium {
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
             position: relative; overflow: hidden;
         }
-        .btn-premium:active { transform: scale(0.96); }
-        .btn-premium::after {
-            content: ''; position: absolute; top: 0; left: -100%;
-            width: 100%; height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);
-            transition: 0.5s;
-        }
-        .btn-premium:hover::after { left: 100%; }
+        .btn-premium:active { transform: scale(0.96); filter: brightness(1.2); }
 
-        .custom-scrollbar::-webkit-scrollbar { width: 4px; }
-        .custom-scrollbar::-webkit-scrollbar-thumb { background: var(--primary); border-radius: 10px; }
-
-        .radar-sweep {
+        .radar-line {
             width: 100%; height: 100%;
             border-radius: 50%;
-            background: conic-gradient(from 0deg, transparent 0%, rgba(99, 102, 241, 0.2) 50%, transparent 100%);
-            animation: sweep 4s linear infinite;
+            background: conic-gradient(from 0deg, transparent 0%, rgba(99, 102, 241, 0.3) 50%, transparent 100%);
+            animation: radar-spin 4s linear infinite;
         }
-        @keyframes sweep { to { transform: rotate(360deg); } }
+        @keyframes radar-spin { to { transform: rotate(360deg); } }
 
-        .data-stream {
-            animation: stream-scroll 20s linear infinite;
-        }
-        @keyframes stream-scroll { from { transform: translateY(0); } to { transform: translateY(-50%); } }
+        .custom-scrollbar::-webkit-scrollbar { width: 3px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #6366f1; }
     </style>
 </head>
-<body class="p-4 md:p-8">
+<body class="flex flex-col">
     <div class="scanlines"></div>
 
-    <!-- STARTUP OVERLAY -->
-    <div id="boot-overlay" class="fixed inset-0 z-[2000] bg-slate-950 flex flex-col items-center justify-center text-center p-6">
+    <!-- FAIL-SAFE BOOT OVERLAY -->
+    <div id="boot-overlay" class="fixed inset-0 z-[2000] bg-slate-950 flex flex-col items-center justify-center text-center p-6 transition-all duration-700">
         <div class="w-32 h-32 glass rounded-3xl flex items-center justify-center mb-8 border-indigo-500/30 animate-pulse">
             <svg width="60" height="60" viewBox="0 0 24 24" fill="none" stroke="#6366f1" stroke-width="1.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
         </div>
-        <h1 class="header-font text-6xl font-black italic text-white mb-2 uppercase">Sentry<span class="text-indigo-500">PRO</span></h1>
-        <p class="text-slate-600 text-[10px] font-bold uppercase tracking-[0.6em] mb-12">Hardware & Simulation Authorization</p>
-        <button onclick="initializeSystem()" class="px-20 py-6 bg-indigo-600 text-white rounded-2xl font-black tracking-[0.3em] text-sm shadow-2xl hover:bg-indigo-500 transition-all uppercase hover:scale-105">INITIALIZE HUB</button>
+        <h1 class="header-font text-5xl font-black italic text-white mb-2 uppercase">Sentry<span class="text-indigo-500">PRO</span></h1>
+        <p class="text-slate-600 text-[10px] font-bold uppercase tracking-[0.5em] mb-12">Hardware Interface v3.0 Elite</p>
+        <button onclick="safeInitialize()" class="px-16 py-6 bg-indigo-600 text-white rounded-2xl font-black tracking-[0.3em] text-sm shadow-2xl hover:bg-indigo-500 transition-all uppercase">Authorize Start</button>
     </div>
 
-    <!-- MAIN INTERFACE -->
-    <div class="max-w-[1700px] mx-auto space-y-6">
-        
-        <!-- HEADER -->
-        <header class="glass rounded-[2.5rem] p-6 flex flex-col lg:flex-row items-center justify-between gap-6 border-white/5">
-            <div class="flex items-center gap-6">
-                <div id="status-led" class="w-4 h-4 rounded-full bg-slate-800 transition-all duration-500 shadow-inner"></div>
-                <div class="flex flex-col">
-                    <h2 class="header-font font-black italic text-3xl uppercase text-white leading-none">Tactical<span class="text-indigo-500">Node</span></h2>
-                    <span id="connection-status" class="text-[9px] font-bold text-slate-500 uppercase tracking-widest mt-1">Uplink: Standby</span>
-                </div>
+    <!-- HEADER -->
+    <header class="p-6 border-b border-white/5 glass flex flex-col lg:flex-row items-center justify-between gap-6 z-[100]">
+        <div class="flex items-center gap-6">
+            <div id="status-led" class="w-4 h-4 rounded-full bg-slate-800 transition-all duration-500"></div>
+            <div class="flex flex-col">
+                <h2 class="header-font font-black italic text-3xl uppercase text-white leading-none">Tactical<span class="text-indigo-500 text-xl ml-1">OS</span></h2>
+                <span id="conn-text" class="text-[8px] font-black text-slate-500 uppercase tracking-widest mt-1">Uplink: Standby</span>
             </div>
+        </div>
 
-            <div class="flex gap-10">
-                <div class="flex flex-col items-center">
-                    <span class="text-[9px] font-black text-slate-600 uppercase tracking-widest">Simulation</span>
-                    <span id="demo-badge" class="text-[10px] font-mono font-bold text-slate-500 bg-white/5 px-3 py-1 rounded-full mt-1 border border-white/5">INACTIVE</span>
-                </div>
-                <div class="flex flex-col items-center">
-                    <span class="text-[9px] font-black text-slate-600 uppercase tracking-widest">Encryption</span>
-                    <span class="text-[10px] font-mono font-bold text-emerald-500 mt-1">AES-256-GCM</span>
-                </div>
-                <div class="flex flex-col items-center">
-                    <span class="text-[9px] font-black text-slate-600 uppercase tracking-widest">System Load</span>
-                    <span id="cpu-load" class="text-[10px] font-mono font-bold text-indigo-400 mt-1">0%</span>
-                </div>
+        <div class="flex gap-12 items-center">
+            <div class="flex flex-col items-center">
+                <span class="text-[8px] font-black text-slate-600 uppercase tracking-widest mb-1">Enc Level</span>
+                <span class="text-[10px] font-mono font-bold text-emerald-500 bg-emerald-500/5 px-2 py-0.5 rounded border border-emerald-500/10">RSA-4096</span>
             </div>
-
-            <div class="flex gap-4">
-                <button id="demo-btn" onclick="toggleDemo()" class="btn-premium px-6 py-3 border border-indigo-500/30 text-indigo-400 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-indigo-600/10">Toggle Demo</button>
-                <button id="usb-btn" onclick="connectHardware()" class="btn-premium flex items-center gap-3 px-8 py-3 bg-indigo-600 text-white rounded-xl text-xs font-black uppercase tracking-widest shadow-lg shadow-indigo-600/30">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M10 7V3h4v4M4 20h16M12 7v13"/></svg>
-                    Link Uno
-                </button>
+            <div class="flex flex-col items-center">
+                <span class="text-[8px] font-black text-slate-600 uppercase tracking-widest mb-1">Node Stat</span>
+                <span id="node-stat" class="text-[10px] font-mono font-bold text-slate-400">NODE_IDLE</span>
             </div>
-        </header>
+        </div>
 
-        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+        <div class="flex gap-4">
+            <button id="demo-btn" onclick="toggleDemo()" class="btn-premium px-6 py-3 border border-indigo-500/20 text-indigo-400 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-indigo-600/10 transition-all">Simulation: OFF</button>
+            <button onclick="connectHardware()" class="btn-premium flex items-center gap-3 px-8 py-3 bg-indigo-600 text-white rounded-xl text-xs font-black uppercase tracking-widest shadow-lg shadow-indigo-600/20">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M10 7V3h4v4M4 20h16M12 7v13"/></svg>
+                Connect hardware
+            </button>
+        </div>
+    </header>
+
+    <!-- BODY CONTENT -->
+    <main class="flex-1 p-4 md:p-8 overflow-y-auto custom-scrollbar">
+        <div class="max-w-[1700px] mx-auto grid grid-cols-1 lg:grid-cols-12 gap-8">
             
-            <!-- LEFT PANEL: Audio Center & Gauges -->
+            <!-- LEFT: ASSETS & GAUGES -->
             <div class="lg:col-span-3 space-y-6">
-                <div class="glass p-8 rounded-[3.5rem] border-indigo-500/20 relative overflow-hidden">
-                    <div class="absolute top-0 right-0 p-6 opacity-5 pointer-events-none">
-                        <svg width="120" height="120" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="1"><path d="M9 18V5l12-2v13M9 18a3 3 0 1 1-6 0 3 3 0 0 1 6 0zm12-2a3 3 0 1 1-6 0 3 3 0 0 1 6 0z"/></svg>
-                    </div>
+                <div class="glass p-8 rounded-[3.5rem] border-indigo-500/10 relative overflow-hidden group">
                     <div class="flex items-center gap-4 mb-10">
-                        <div class="p-3 bg-indigo-600/20 rounded-2xl border border-indigo-500/20">
-                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#6366f1" stroke-width="2.5"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
+                        <div class="p-3 bg-indigo-600/20 rounded-2xl">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#6366f1" stroke-width="2.5"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
                         </div>
-                        <h3 class="text-xs font-black uppercase tracking-[0.2em] text-white">Audio Assets</h3>
+                        <h3 class="text-xs font-black uppercase tracking-widest text-white">Audio Center</h3>
                     </div>
 
                     <div class="p-6 bg-black/60 rounded-[2.5rem] border border-white/5 shadow-inner mb-8">
-                        <span class="text-[9px] font-black text-slate-700 uppercase block mb-2 tracking-[0.3em]">Master Siren Track</span>
-                        <span id="track-name" class="text-xs font-mono font-bold text-indigo-400 truncate block">Tactical_Pulse.wav</span>
+                        <span class="text-[9px] font-black text-slate-700 uppercase block mb-2">Driver Target</span>
+                        <span id="track-display" class="text-xs font-mono font-bold text-indigo-400 truncate block italic">Factory_Siren.mp3</span>
                     </div>
 
                     <input type="file" id="audio-upload" class="hidden" accept="audio/*">
-                    <button onclick="document.getElementById('audio-upload').click()" class="btn-premium w-full py-10 bg-indigo-600 border border-indigo-400/40 rounded-[3rem] text-[13px] font-black uppercase text-white shadow-2xl hover:bg-indigo-500 transition-all flex flex-col items-center gap-4 tracking-[0.3em]">
+                    <button onclick="document.getElementById('audio-upload').click()" class="btn-premium w-full py-10 bg-indigo-600 border border-indigo-400/30 rounded-[3rem] text-[12px] font-black uppercase text-white shadow-2xl hover:bg-indigo-500 transition-all flex flex-col items-center gap-4 tracking-[0.25em]">
                         <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M17 8l-5-5-5 5M12 3v12"/></svg>
-                        UPLOAD ASSET
+                        UPLINK CUSTOM ASSET
                     </button>
+                    <button onclick="testAlarm()" class="w-full mt-4 py-4 text-slate-500 text-[10px] font-black uppercase tracking-widest hover:text-indigo-400 transition-all">Test Signal Response</button>
                 </div>
 
-                <div class="glass p-8 rounded-[3rem] border-white/5 space-y-8">
-                    <span class="text-[9px] font-black text-slate-500 uppercase tracking-widest block">System Diagnostics</span>
-                    <div class="space-y-8">
-                        <div class="space-y-3">
-                            <div class="flex justify-between text-[10px] font-bold uppercase"><span class="text-slate-400 tracking-widest">Grid Integrity</span><span id="integrity-pct" class="text-emerald-400">100%</span></div>
-                            <div class="h-1.5 bg-slate-900 rounded-full overflow-hidden border border-white/5"><div id="integrity-bar" class="h-full bg-emerald-500 w-full transition-all duration-1000"></div></div>
+                <!-- DIAGNOSTIC BAR -->
+                <div class="glass p-8 rounded-[3rem] space-y-8">
+                    <span class="text-[9px] font-black text-slate-600 uppercase tracking-widest">Diagnostic Stream</span>
+                    <div class="space-y-6">
+                        <div>
+                            <div class="flex justify-between text-[9px] font-bold mb-2 uppercase opacity-40"><span>CPU Intensity</span><span id="cpu-pct">0%</span></div>
+                            <div class="h-1 bg-slate-900 rounded-full overflow-hidden"><div id="cpu-bar" class="h-full bg-indigo-500 w-0 transition-all duration-500"></div></div>
                         </div>
-                        <div class="space-y-3">
-                            <div class="flex justify-between text-[10px] font-bold uppercase"><span class="text-slate-400 tracking-widest">Core Temp</span><span id="temp-val" class="text-indigo-400">32°C</span></div>
-                            <div class="h-1.5 bg-slate-900 rounded-full overflow-hidden border border-white/5"><div id="temp-bar" class="h-full bg-indigo-500 w-[32%] transition-all duration-1000"></div></div>
+                        <div>
+                            <div class="flex justify-between text-[9px] font-bold mb-2 uppercase opacity-40"><span>Memory Allocation</span><span id="mem-pct">12%</span></div>
+                            <div class="h-1 bg-slate-900 rounded-full overflow-hidden"><div id="mem-bar" class="h-full bg-indigo-500 w-[12%] transition-all duration-500"></div></div>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <!-- CENTER PANEL: HUD CORE -->
+            <!-- CENTER: HUD GRID -->
             <div class="lg:col-span-6 space-y-8">
-                <div id="status-card" class="rounded-[5rem] p-16 text-center transition-all duration-1000 border-2 border-white/10 glass relative overflow-hidden min-h-[550px] flex flex-col items-center justify-center">
-                    <div id="laser-line" class="hidden laser-visual"></div>
+                <div id="status-card" class="glass rounded-[5rem] p-16 text-center border-2 border-white/5 relative overflow-hidden min-h-[550px] flex flex-col items-center justify-center transition-all duration-700">
+                    <div id="laser-effect" class="hidden laser-visual"></div>
                     
-                    <!-- Radar/Scan Visualizer Overlay -->
-                    <div class="absolute inset-0 opacity-20 pointer-events-none">
-                        <div class="radar-sweep"></div>
+                    <!-- Radar Overlay -->
+                    <div class="absolute inset-0 opacity-10 pointer-events-none">
+                        <div class="radar-line"></div>
                         <div class="absolute inset-0 border border-indigo-500/20 rounded-full scale-[0.8]"></div>
-                        <div class="absolute inset-0 border border-indigo-500/10 rounded-full scale-[0.5]"></div>
-                        <div class="absolute top-1/2 left-0 w-full h-[1px] bg-indigo-500/10"></div>
-                        <div class="absolute left-1/2 top-0 h-full w-[1px] bg-indigo-500/10"></div>
+                        <div class="absolute inset-0 border border-indigo-500/10 rounded-full scale-[0.4]"></div>
                     </div>
 
-                    <div id="status-icon-bg" class="p-14 rounded-full bg-indigo-500/5 mb-10 transition-all duration-500 relative z-10">
-                        <svg id="status-icon" width="90" height="90" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="1.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                    <div id="icon-container" class="p-14 rounded-full bg-slate-800/40 mb-10 transition-all duration-500 relative z-10">
+                        <svg id="main-icon" width="80" height="80" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="1.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
                     </div>
 
-                    <h2 id="main-status-text" class="header-font text-9xl font-black italic tracking-tighter uppercase text-white leading-none mb-6 relative z-10">Idle</h2>
-                    <p id="sub-status-text" class="text-slate-500 text-[10px] font-bold uppercase tracking-[0.7em] mb-12 italic opacity-60 relative z-10">System authorization protocol required</p>
+                    <h1 id="status-text" class="header-font text-9xl font-black italic tracking-tighter uppercase text-white leading-none mb-6 relative z-10">IDLE</h1>
+                    <p id="sub-text" class="text-slate-500 text-[10px] font-bold uppercase tracking-[0.6em] mb-12 opacity-50 relative z-10">Waiting for user engagement</p>
 
-                    <button id="arm-btn" onclick="toggleArming()" class="btn-premium w-full max-w-sm py-9 bg-white text-black rounded-[3rem] font-black text-sm tracking-[0.4em] shadow-2xl transition-all uppercase relative z-10">Engage Perimeter</button>
+                    <button id="main-action-btn" onclick="handleMainAction()" class="btn-premium w-full max-w-sm py-9 bg-white text-black rounded-[3rem] font-black text-sm tracking-[0.4em] shadow-2xl transition-all uppercase relative z-10">Engage Perimeter</button>
                 </div>
 
-                <!-- Live Diagnostics Canvas -->
-                <div class="glass rounded-[4rem] p-10 relative overflow-hidden">
-                    <div class="flex justify-between items-center mb-10 relative z-10">
-                        <div class="flex flex-col gap-1">
-                            <span class="text-[11px] font-black uppercase tracking-[0.3em] text-slate-500 flex items-center gap-3 italic">
-                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#6366f1" stroke-width="2.5"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
-                                Frequency Telemetry
-                            </span>
-                            <span class="text-[8px] font-bold text-slate-700 tracking-[0.2em] uppercase">Real-time Node_A0 Signal Output</span>
+                <!-- Live Waveform -->
+                <div class="glass rounded-[4rem] p-10">
+                    <div class="flex justify-between items-center mb-8 font-black uppercase tracking-widest text-[11px] text-slate-500 italic">
+                        <div class="flex items-center gap-3">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#6366f1" stroke-width="2.5"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+                            Waveform Telemetry Feed
                         </div>
-                        <span id="raw-val-display" class="text-indigo-400 monofont text-5xl font-black leading-none">0000</span>
+                        <span id="raw-signal" class="text-indigo-400 monofont text-4xl">0000</span>
                     </div>
-                    <canvas id="telemetry-canvas" class="w-full h-44"></canvas>
+                    <canvas id="waveform" class="w-full h-44"></canvas>
                 </div>
             </div>
 
-            <!-- RIGHT PANEL: Event Log & Biometric Data -->
+            <!-- RIGHT: LOGS & BINARY -->
             <div class="lg:col-span-3 space-y-6">
-                <div class="glass rounded-[3.5rem] flex flex-col h-[650px] overflow-hidden border-white/5">
-                    <div class="p-10 border-b border-white/5 flex justify-between items-center bg-slate-900/40">
-                        <div class="flex flex-col">
-                            <h3 class="text-xs font-black uppercase tracking-widest text-white">Event Stream</h3>
-                            <span class="text-[8px] font-bold text-indigo-500 uppercase tracking-widest mt-1">Encrypted Logs</span>
-                        </div>
+                <div class="glass rounded-[3.5rem] flex flex-col h-[600px] overflow-hidden">
+                    <div class="p-8 border-b border-white/5 flex justify-between items-center bg-slate-900/50">
+                        <span class="text-[10px] font-black uppercase tracking-widest text-white">Encrypted Log Stream</span>
                     </div>
-                    <div id="terminal" class="flex-1 overflow-y-auto p-8 space-y-6 custom-scrollbar bg-black/40 font-mono">
-                        <div class="opacity-10 text-[10px] uppercase text-center mt-20">Waiting for Data Uplink...</div>
+                    <div id="terminal" class="flex-1 overflow-y-auto p-8 space-y-5 custom-scrollbar bg-black/40 font-mono">
+                        <div class="opacity-10 text-[9px] uppercase text-center mt-20 italic">Awaiting hardware uplink...</div>
                     </div>
                 </div>
 
-                <div class="glass p-8 rounded-[3rem] border-white/5 h-48 overflow-hidden relative">
-                    <span class="text-[9px] font-black text-slate-600 uppercase tracking-widest block mb-4">Biometric Stream</span>
-                    <div id="biometric-list" class="space-y-2 font-mono text-[8px] text-indigo-500/50 uppercase leading-none data-stream">
-                        <!-- Simulated Data Lines -->
-                        <div>Handshake_Init: User_Admin</div><div>UID: 0x827A-991B</div><div>Protocol: AES_Secure</div><div>Node: Alpha_Center</div>
-                        <div>Handshake_Init: User_Admin</div><div>UID: 0x827A-991B</div><div>Protocol: AES_Secure</div><div>Node: Alpha_Center</div>
-                        <div>Handshake_Init: User_Admin</div><div>UID: 0x827A-991B</div><div>Protocol: AES_Secure</div><div>Node: Alpha_Center</div>
-                        <div>Handshake_Init: User_Admin</div><div>UID: 0x827A-991B</div><div>Protocol: AES_Secure</div><div>Node: Alpha_Center</div>
+                <div class="glass p-8 rounded-[3rem] h-52 overflow-hidden relative font-mono text-[9px] text-indigo-500/40 uppercase">
+                    <span class="text-[10px] font-black text-slate-600 uppercase tracking-widest block mb-4">Encryption Flux</span>
+                    <div id="binary-stream" class="space-y-1">
+                        <!-- Binary data populated by JS -->
                     </div>
                 </div>
             </div>
 
         </div>
-    </div>
+    </main>
 
     <script>
-        // --- State Variables ---
-        let isConnected = false;
+        // --- Core System State ---
         let isArmed = false;
-        let isMuted = false;
+        let isConnected = false;
         let isDemo = false;
+        let isMuted = false;
         let alarmTrack = new Audio('https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3');
+        let telemetry = new Array(100).fill(0);
+        let rawVal = 0;
         let port, reader;
-        let telemetryData = new Array(120).fill(0);
-        let rawValue = 0;
-        let cpuLoad = 0;
 
-        const canvas = document.getElementById('telemetry-canvas');
+        const canvas = document.getElementById('waveform');
         const ctx = canvas.getContext('2d');
 
-        function initializeSystem() {
-            document.getElementById('boot-overlay').classList.add('hidden');
-            addLog("SYSTEM CORE INITIALIZED", "info");
-            requestAnimationFrame(animateTelemetry);
-            
-            // Background Data Ticker
-            setInterval(updateGauges, 1000);
+        // Safe Initialization
+        function safeInitialize() {
+            try {
+                document.getElementById('boot-overlay').style.opacity = '0';
+                setTimeout(() => {
+                    document.getElementById('boot-overlay').classList.add('hidden');
+                }, 700);
+                
+                addLog("COMMAND CORE AUTHORIZED", "info");
+                startMainLoop();
+                populateBinary();
+            } catch (e) {
+                console.error("Initialization failed, forcing bypass", e);
+                document.getElementById('boot-overlay').classList.add('hidden');
+            }
         }
 
+        // --- Hardware & Demo Logic ---
         function toggleDemo() {
             isDemo = !isDemo;
-            const badge = document.getElementById('demo-badge');
-            badge.innerText = isDemo ? "ACTIVE" : "INACTIVE";
-            badge.className = isDemo ? "text-[10px] font-mono font-bold text-amber-500 bg-amber-500/10 px-3 py-1 rounded-full mt-1 border border-amber-500/20" : "text-[10px] font-mono font-bold text-slate-500 bg-white/5 px-3 py-1 rounded-full mt-1 border border-white/5";
+            const btn = document.getElementById('demo-btn');
+            btn.innerText = isDemo ? "Simulation: ACTIVE" : "Simulation: OFF";
+            btn.classList.toggle('text-amber-500', isDemo);
+            btn.classList.toggle('border-amber-500/40', isDemo);
             addLog(isDemo ? "NEURAL SIMULATION STARTED" : "SIMULATION ABORTED", isDemo ? "success" : "info");
         }
 
@@ -294,16 +271,16 @@
                 port = await navigator.serial.requestPort();
                 await port.open({ baudRate: 9600 });
                 isConnected = true;
-                isDemo = false; // Disable demo if real hardware connects
-                updateUI('ready');
-                addLog("NODE_LINK_01 ESTABLISHED", "success");
-                readSerial();
+                isDemo = false;
+                updateSystemUI('ready');
+                addLog("NODE_UPLINK_01 STABLE", "success");
+                readSerialStream();
             } catch (e) {
                 addLog("HARDWARE REJECTED: " + e.message, "error");
             }
         }
 
-        async function readSerial() {
+        async function readSerialStream() {
             const decoder = new TextDecoder();
             while (port.readable) {
                 reader = port.readable.getReader();
@@ -311,38 +288,90 @@
                     while (true) {
                         const { value, done } = await reader.read();
                         if (done) break;
-                        const text = decoder.decode(value);
+                        const msg = decoder.decode(value);
                         
-                        // Parse [VAL:xxx]
-                        const match = text.match(/\[VAL:(\d+)\]/);
-                        if (match) {
-                            rawValue = parseInt(match[1]);
-                            telemetryData.push(rawValue);
-                            telemetryData.shift();
+                        const valMatch = msg.match(/\[VAL:(\d+)\]/);
+                        if (valMatch) {
+                            rawVal = parseInt(valMatch[1]);
+                            telemetry.push(rawVal);
+                            telemetry.shift();
                         }
 
-                        if (text.includes("INTRUSION") && isArmed) {
-                            triggerAlarm();
+                        if (msg.includes("INTRUSION") && isArmed) {
+                            triggerBreach();
                         }
                     }
                 } catch (e) {
                     isConnected = false;
-                    updateUI('offline');
+                    updateSystemUI('offline');
                 } finally {
                     reader.releaseLock();
                 }
             }
         }
 
-        function triggerAlarm() {
-            if (document.getElementById('main-status-text').innerText === "Breach") return;
-            updateUI('alert');
+        function handleMainAction() {
+            const status = document.getElementById('status-text').innerText;
+            if (status === "BREACH") {
+                resetSecurity();
+                return;
+            }
+            isArmed = !isArmed;
+            updateSystemUI(isArmed ? 'armed' : 'ready');
+            addLog(isArmed ? "SCANNER GRID ACTIVE" : "SECURITY GRID DISABLED", isArmed ? "success" : "info");
+
+            if (isDemo && isArmed) {
+                setTimeout(() => { if(isArmed && isDemo) triggerBreach(); }, 5000);
+            }
+        }
+
+        function triggerBreach() {
+            updateSystemUI('alert');
             if (!isMuted) {
                 alarmTrack.loop = true;
                 alarmTrack.play();
             }
-            addLog("ALERT: PERIMETER BREACH", "error");
+            addLog("CRITICAL: PERIMETER BREACH", "error");
         }
 
-        function toggleArming() {
-        
+        function resetSecurity() {
+            isArmed = true;
+            alarmTrack.pause();
+            alarmTrack.currentTime = 0;
+            updateSystemUI('armed');
+            addLog("ALARM RESET - MONITORING", "success");
+        }
+
+        // --- UI Updates ---
+        function updateSystemUI(state) {
+            const card = document.getElementById('status-card');
+            const iconWrap = document.getElementById('icon-container');
+            const mainIcon = document.getElementById('main-icon');
+            const statusText = document.getElementById('status-text');
+            const subText = document.getElementById('sub-text');
+            const btn = document.getElementById('main-action-btn');
+            const led = document.getElementById('status-led');
+            const laser = document.getElementById('laser-effect');
+
+            card.classList.remove('breach-active');
+            laser.classList.add('hidden');
+            led.className = "w-4 h-4 rounded-full transition-all duration-500 ";
+
+            if (state === 'offline') {
+                statusText.innerText = "IDLE";
+                led.classList.add('bg-slate-800');
+                document.getElementById('conn-text').innerText = "Uplink: Standby";
+                document.getElementById('node-stat').innerText = "NODE_IDLE";
+            } else if (state === 'ready') {
+                statusText.innerText = "READY";
+                subText.innerText = "Encryption Link Secure";
+                led.classList.add('bg-emerald-500', 'shadow-[0_0_15px_rgba(16,185,129,0.5)]');
+                btn.innerText = "Engage Perimeter";
+                btn.className = "btn-premium w-full max-w-sm py-9 bg-indigo-600 text-white rounded-[3rem] font-black text-sm tracking-[0.4em] transition-all uppercase";
+                iconWrap.className = "p-14 rounded-full bg-indigo-500/10 mb-10";
+                document.getElementById('conn-text').innerText = "Uplink: Stable";
+                document.getElementById('node-stat').innerText = "NODE_READY";
+            } else if (state === 'armed') {
+                statusText.innerText = "ARMED";
+                subText.innerText = "Active Scanner Protocol v3.0";
+                led.
