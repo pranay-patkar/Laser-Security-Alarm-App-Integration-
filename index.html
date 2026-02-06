@@ -94,7 +94,6 @@
 </head>
 <body id="bg-layer" class="min-h-screen flex flex-col items-center justify-center p-4 transition-all duration-1000">
 
-    <!-- Initialization Overlay -->
     <div id="init-overlay">
         <div class="text-center space-y-8">
             <div class="w-24 h-24 glass rounded-3xl flex items-center justify-center mx-auto border-indigo-500/30 animate-pulse">
@@ -110,10 +109,7 @@
         </div>
     </div>
 
-    <!-- App Content -->
     <div class="w-full max-w-md space-y-6 relative z-10">
-        
-        <!-- Navbar -->
         <div class="flex items-center justify-between px-2">
             <div class="flex items-center gap-3">
                 <div id="led" class="w-2.5 h-2.5 rounded-full bg-slate-800 transition-all"></div>
@@ -121,11 +117,10 @@
             </div>
             <div class="flex gap-2">
                 <button id="demo-btn" onclick="runDemo()" class="text-[9px] font-bold text-slate-400 bg-white/5 border border-white/10 px-4 py-2 rounded-full hover:bg-white/10 transition-all uppercase tracking-tighter">Demo Mode</button>
-                <button id="connect-btn" onclick="connectUSB()" class="bg-indigo-600 text-white px-5 py-2 rounded-full text-[9px] font-black tracking-widest border border-indigo-400/30 transition-all uppercase shadow-lg shadow-indigo-600/20">Link Uno</button>
+                <button id="connect-btn" onclick="connectUSB()" class="bg-indigo-600 text-white px-5 py-2 rounded-full text-[9px] font-black tracking-widest border border-indigo-400/30 transition-all uppercase">Link Uno</button>
             </div>
         </div>
 
-        <!-- Main Card -->
         <div id="status-card" class="glass rounded-[4rem] p-12 text-center relative overflow-visible transition-all duration-700">
             <div id="siren-fx" class="siren-wave"></div>
             <div id="laser" class="laser-visual"></div>
@@ -140,16 +135,11 @@
             <p id="status-desc" class="text-slate-500 text-xs font-semibold tracking-wide mb-10 italic">Awaiting hardware authorization...</p>
 
             <div class="flex flex-col gap-3 relative z-30">
-                <button id="action-btn" disabled onclick="handleAction()" class="w-full py-5 rounded-3xl bg-slate-900 text-slate-700 font-bold text-sm tracking-widest border border-white/5 transition-all shadow-inner">
-                    LOCKED
-                </button>
-                <button id="reset-btn" onclick="resetAlarm()" class="hidden w-full py-5 rounded-3xl bg-white text-black font-black text-sm tracking-widest shadow-2xl active:scale-95 transition-all">
-                    RESET ALARM
-                </button>
+                <button id="action-btn" disabled onclick="handleAction()" class="w-full py-5 rounded-3xl bg-slate-900 text-slate-700 font-bold text-sm tracking-widest border border-white/5 transition-all">LOCKED</button>
+                <button id="reset-btn" onclick="resetAlarm()" class="hidden w-full py-5 rounded-3xl bg-white text-black font-black text-sm tracking-widest shadow-2xl active:scale-95 transition-all">RESET ALARM</button>
             </div>
         </div>
 
-        <!-- Terminal Feed -->
         <div id="terminal-box" onclick="handleTerminalClick()" class="glass rounded-[2.5rem] p-6 h-36 border-white/5 flex flex-col cursor-pointer hover:bg-white/5 transition-all">
             <div class="flex justify-between items-center mb-4">
                 <div class="flex items-center gap-2">
@@ -165,7 +155,6 @@
         </div>
     </div>
 
-    <!-- Repeating Beep -->
     <audio id="sfx-alarm" src="https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3" preload="auto"></audio>
     <audio id="sfx-arm" src="https://assets.mixkit.co/active_storage/sfx/2568/2568-preview.mp3" preload="auto"></audio>
 
@@ -212,11 +201,10 @@
                 els.audioAlarm.currentTime = 0;
                 els.audioLabel.innerText = "AUDIO: READY";
                 els.audioLabel.className = "text-[8px] font-bold px-2 py-0.5 rounded bg-green-500/10 text-green-500 border border-green-500/20";
-            }).catch(() => {});
-            
+            });
             els.overlay.style.opacity = '0';
             setTimeout(() => els.overlay.style.display = 'none', 500);
-            log("Core initialized. Drivers authorized.");
+            log("Core initialized. USB permissions granted.");
         };
 
         window.runDemo = function() {
@@ -233,11 +221,9 @@
                 isDemo = false;
                 els.modeLabel.innerText = "USB Node: 01";
                 setReadyState("USB Link Stable: Arduino Uno");
-                log("Serial connection established @ 9600.");
+                log("Serial connection established.");
                 readLoop();
-            } catch (err) {
-                log("USB Error: " + err.message);
-            }
+            } catch (err) { log("USB Error: " + err.message); }
         };
 
         function setReadyState(desc) {
@@ -259,12 +245,7 @@
                         const { value, done } = await reader.read();
                         if (done) break;
                         const text = decoder.decode(value).trim();
-                        if (text) {
-                            els.dataDot.className = "w-1.5 h-1.5 bg-indigo-500 rounded-full animate-ping";
-                            log("IN: " + text);
-                            if (text.includes("INTRUSION") && isArmed) triggerAlarm();
-                            setTimeout(() => els.dataDot.className = "w-1.5 h-1.5 bg-indigo-500 rounded-full", 100);
-                        }
+                        if (text.includes("INTRUSION") && isArmed) triggerAlarm();
                     }
                 } finally { reader.releaseLock(); }
             }
@@ -275,22 +256,16 @@
                 isArmed = true;
                 els.audioArm.play().catch(()=>{});
                 els.title.innerText = "Armed";
-                els.desc.innerText = "Grid monitoring active...";
+                els.desc.innerText = "Monitoring perimeter...";
                 els.card.classList.add('glow-armed');
                 els.icon.innerHTML = icons.armed;
                 els.laser.style.display = 'block';
                 els.btn.innerText = "DISARM";
                 els.btn.className = "w-full py-5 rounded-3xl bg-white/5 border border-white/10 text-slate-500 font-bold text-sm tracking-widest";
-                log("SECURITY: Perimeter hot.");
-
-                if (isDemo) {
-                    log("DEMO: Breach scheduled in 4s...");
-                    setTimeout(() => { if(isArmed) triggerAlarm(); }, 4000);
-                }
+                if (isDemo) setTimeout(() => { if(isArmed) triggerAlarm(); }, 4000);
             } else {
                 isArmed = false;
                 resetToReady();
-                log("SECURITY: Disarmed.");
             }
         };
 
@@ -299,18 +274,16 @@
             alarmActive = true;
             els.audioAlarm.loop = true;
             els.audioAlarm.play().catch(() => {});
-            
             els.card.classList.add('glow-alert');
             els.title.innerText = "BREACH";
             els.title.classList.add('text-red-500');
             els.desc.innerText = "INTRUSION DETECTED!";
             els.icon.innerHTML = icons.breach;
-            
             els.laser.style.display = 'none';
             els.sirenFx.style.display = 'block';
             els.btn.classList.add('hidden');
             els.reset.classList.remove('hidden');
-            log("ALERT: SYSTEM BREACHED.");
+            log("!!! ALERT: BREACH !!!");
         }
 
         window.resetAlarm = function() {
@@ -318,14 +291,12 @@
             els.audioAlarm.pause();
             els.audioAlarm.currentTime = 0;
             els.audioAlarm.loop = false;
-            
             els.card.classList.remove('glow-alert');
             els.title.classList.remove('text-red-500');
             els.sirenFx.style.display = 'none';
             els.reset.classList.add('hidden');
             els.btn.classList.remove('hidden');
             resetToReady();
-            log("RESET: System restored to Ready.");
         }
 
         function resetToReady() {
@@ -338,20 +309,12 @@
             els.btn.className = "w-full py-5 rounded-3xl bg-indigo-600 text-white font-black text-sm tracking-widest shadow-2xl";
         }
 
-        window.addEventListener('keydown', (e) => {
-            if (e.key.toLowerCase() === 't') triggerAlarm();
-        });
-
+        window.addEventListener('keydown', (e) => { if (e.key.toLowerCase() === 't') triggerAlarm(); });
         window.handleTerminalClick = function() {
             clickCount++;
             clearTimeout(clickTimer);
-            if (clickCount === 3) {
-                log("TEST: Manual breach test triggered.");
-                triggerAlarm();
-                clickCount = 0;
-            } else {
-                clickTimer = setTimeout(() => { clickCount = 0; }, 500);
-            }
+            if (clickCount === 3) { triggerAlarm(); clickCount = 0; }
+            else { clickTimer = setTimeout(() => { clickCount = 0; }, 500); }
         };
     </script>
 </body>
