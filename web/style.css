@@ -168,7 +168,7 @@ h1 {
 .btn-disarm:not(:disabled):hover { background:var(--green-dim); box-shadow:var(--green-glow); }
 .btn-clear    { border-color:var(--border); color:var(--text-dim); margin-top:auto; font-size:.6rem; }
 .btn-clear:hover { border-color:var(--text-dim); background:rgba(255,255,255,.03); }
-.hidden { display:none !important; }
+.hidden { display:none !important; visibility:hidden !important; }
 
 /* ── Telemetry ──────────────────────────────────────────────── */
 .telemetry-row {
@@ -186,8 +186,18 @@ h1 {
 .bt-dot.connected { background:var(--cyan); box-shadow:var(--cyan-glow); animation:btPing 2s infinite; }
 
 .bt-status-row { display:flex; align-items:center; gap:10px; }
-.bt-icon { font-size:1.6rem; color:var(--text-dim); transition:color .3s; }
-.bt-icon.connected { color:var(--cyan); text-shadow:var(--cyan-glow); }
+.bt-icon {
+  width: 32px; height: 32px; flex-shrink:0;
+  border: 1.5px solid var(--text-dim); border-radius: 50%;
+  display: flex; align-items:center; justify-content:center;
+  font-size: 1rem; color: var(--text-dim);
+  transition: color .3s, border-color .3s, box-shadow .3s;
+  background: rgba(0,0,0,.3);
+}
+.bt-icon.connected {
+  color: var(--cyan); border-color: var(--cyan);
+  box-shadow: var(--cyan-glow);
+}
 .bt-device-name {
   font-family:var(--hud); font-size:.72rem; color:var(--text-dim);
   letter-spacing:.1em; transition:color .3s;
@@ -204,21 +214,30 @@ h1 {
 .bt-input:focus { border-color:var(--cyan); }
 .bt-input::placeholder { color:var(--text-dim); }
 .btn-send {
-  background:var(--cyan-dim); border:1px solid var(--cyan);
-  color:var(--cyan); font-family:var(--hud); font-size:.6rem;
-  letter-spacing:.1em; padding:6px 12px; border-radius:var(--radius);
-  cursor:pointer; transition:var(--trans); white-space:nowrap;
+  all: unset;
+  box-sizing: border-box;
+  background: var(--cyan-dim); border: 1px solid var(--cyan);
+  color: var(--cyan); font-family: var(--hud); font-size: .6rem;
+  letter-spacing: .1em; padding: 7px 14px; border-radius: var(--radius);
+  cursor: pointer; transition: var(--trans); white-space: nowrap;
+  display: inline-block;
 }
-.btn-send:hover { background:rgba(0,220,255,.2); box-shadow:var(--cyan-glow); }
+.btn-send:hover { background: rgba(0,220,255,.22); box-shadow: var(--cyan-glow); }
 
-.bt-cmd-presets { display:flex; flex-wrap:wrap; gap:5px; }
+.bt-cmd-presets { display: flex; flex-wrap: wrap; gap: 5px; }
+
 .preset-btn {
-  background:rgba(0,0,0,.3); border:1px solid var(--border);
-  color:var(--text-dim); font-family:var(--hud); font-size:.58rem;
-  letter-spacing:.1em; padding:4px 10px; border-radius:var(--radius);
-  cursor:pointer; transition:var(--trans);
+  all: unset;
+  box-sizing: border-box;
+  background: rgba(0,0,0,.35); border: 1px solid rgba(0,220,255,.3);
+  color: var(--text-dim); font-family: var(--hud); font-size: .58rem;
+  letter-spacing: .1em; padding: 5px 12px; border-radius: var(--radius);
+  cursor: pointer; transition: var(--trans); display: inline-block;
 }
-.preset-btn:hover { border-color:var(--cyan); color:var(--cyan); background:var(--cyan-dim); }
+.preset-btn:hover {
+  border-color: var(--cyan); color: var(--cyan);
+  background: var(--cyan-dim); box-shadow: 0 0 8px rgba(0,220,255,.3);
+}
 .bt-last-cmd { font-size:.62rem; color:var(--text-dim); font-style:italic; }
 
 /* ── Center Panel ───────────────────────────────────────────── */
@@ -315,9 +334,12 @@ footer {
 
 /* ── Demo Modal ─────────────────────────────────────────────── */
 .modal-overlay {
-  position:fixed; inset:0; background:rgba(2,4,12,.85);
-  backdrop-filter:blur(6px); z-index:5000;
-  display:flex; align-items:center; justify-content:center;
+  position:fixed; inset:0; background:rgba(2,4,12,.88);
+  backdrop-filter:blur(8px); z-index:5000;
+  align-items:center; justify-content:center;
+}
+.modal-overlay:not(.hidden) {
+  display:flex;
 }
 .modal {
   background:var(--bg3); border:1px solid var(--amber);
