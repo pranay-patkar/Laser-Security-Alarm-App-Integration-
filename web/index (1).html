@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SENTINEL // Security Command Center</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <!-- Scanline overlay -->
+  <div class="scanlines" aria-hidden="true"></div>
+  <!-- Corner brackets -->
+  <div class="corner tl" aria-hidden="true"></div>
+  <div class="corner tr" aria-hidden="true"></div>
+  <div class="corner bl" aria-hidden="true"></div>
+  <div class="corner br" aria-hidden="true"></div>
+
+  <div class="hud-wrapper">
+
+    <!-- ── HEADER ── -->
+    <header>
+      <div class="logo-block">
+        <span class="logo-icon">⬡</span>
+        <div>
+          <h1>SENTINEL</h1>
+          <p class="subtitle">LASER PERIMETER DEFENCE v1.0</p>
+        </div>
+      </div>
+      <div class="sys-time" id="sysTime">00:00:00</div>
+    </header>
+
+    <!-- ── STATUS BAR ── -->
+    <section class="status-bar">
+      <div class="status-pill" id="statusPill">
+        <span class="status-dot" id="statusDot"></span>
+        <span id="statusText">OFFLINE</span>
+      </div>
+      <div class="port-label" id="portLabel">NO DEVICE CONNECTED</div>
+    </section>
+
+    <!-- ── MAIN GRID ── -->
+    <main class="main-grid">
+
+      <!-- LEFT: Connection + Controls -->
+      <div class="panel controls-panel">
+        <div class="panel-label">CONNECTION</div>
+
+        <button class="btn btn-connect" id="btnConnect">
+          <span class="btn-icon">⏻</span>
+          CONNECT VIA USB
+        </button>
+        <button class="btn btn-connect btn-disconnect hidden" id="btnDisconnect">
+          <span class="btn-icon">✕</span>
+          DISCONNECT
+        </button>
+
+        <div class="divider"></div>
+        <div class="panel-label">CONTROL</div>
+
+        <button class="btn btn-arm" id="btnArm" disabled>
+          <span class="btn-icon">🔴</span>
+          ARM SYSTEM
+        </button>
+        <button class="btn btn-disarm" id="btnDisarm" disabled>
+          <span class="btn-icon">🟢</span>
+          DISARM
+        </button>
+
+        <div class="divider"></div>
+        <div class="panel-label">LDR TELEMETRY</div>
+        <div class="telemetry-row">
+          <span>Baseline</span>
+          <span id="telBase">—</span>
+        </div>
+        <div class="telemetry-row">
+          <span>Last Event</span>
+          <span id="telLast">—</span>
+        </div>
+        <div class="telemetry-row">
+          <span>Breaches</span>
+          <span id="telBreaches">0</span>
+        </div>
+      </div>
+
+      <!-- CENTER: Big status display -->
+      <div class="panel center-panel">
+        <div class="big-status-ring" id="bigRing">
+          <div class="ring-inner">
+            <div class="ring-icon" id="ringIcon">⚫</div>
+            <div class="ring-state" id="ringState">OFFLINE</div>
+            <div class="ring-sub" id="ringSub">Connect device to begin</div>
+          </div>
+        </div>
+
+        <!-- Alarm flash overlay -->
+        <div class="alarm-flash hidden" id="alarmFlash">
+          ⚠ BREACH DETECTED ⚠
+        </div>
+      </div>
+
+      <!-- RIGHT: Event log -->
+      <div class="panel log-panel">
+        <div class="panel-label">EVENT LOG</div>
+        <div class="log-scroll" id="eventLog">
+          <div class="log-entry log-system">
+            <span class="log-time">SYSTEM</span>
+            <span class="log-msg">Sentinel dashboard loaded.</span>
+          </div>
+        </div>
+        <button class="btn btn-clear" id="btnClear">CLEAR LOG</button>
+      </div>
+
+    </main>
+
+    <!-- ── FOOTER ── -->
+    <footer>
+      <span>WEB SERIAL API</span>
+      <span class="footer-sep">|</span>
+      <span>BAUD 9600</span>
+      <span class="footer-sep">|</span>
+      <span>ARDUINO UNO R3</span>
+      <span class="footer-sep">|</span>
+      <span id="footerStatus">STANDBY</span>
+    </footer>
+
+  </div><!-- /hud-wrapper -->
+
+  <script src="script.js"></script>
+</body>
+</html>
