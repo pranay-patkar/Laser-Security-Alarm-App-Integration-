@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<title>SENTINEL — Hardware Schematic Guide</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Orbitron:wght@700&display=swap');
+
+  :root {
+    --bg: #050810; --panel: #0c1528; --border: rgba(0,220,255,0.2);
+    --cyan: #00dcff; --green: #00ff88; --red: #ff2244; --amber: #ffaa00;
+    --text: #c8d8f0; --dim: #5a6a80;
+    --mono: 'Share Tech Mono', monospace;
+    --hud: 'Orbitron', sans-serif;
+  }
+  * { box-sizing: border-box; margin:0; padding:0; }
+  body { background:var(--bg); color:var(--text); font-family:var(--mono); font-size:13px; padding:40px; line-height:1.6; }
+
+  h1 { font-family:var(--hud); font-size:1.6rem; color:var(--cyan); letter-spacing:.15em; margin-bottom:6px;
+       text-shadow: 0 0 16px rgba(0,220,255,.5); }
+  h2 { font-family:var(--hud); font-size:.85rem; color:var(--cyan); letter-spacing:.2em; margin:28px 0 12px;
+       border-bottom:1px solid var(--border); padding-bottom:6px; }
+  h3 { color:var(--amber); font-size:.8rem; letter-spacing:.12em; margin:16px 0 8px; }
+
+  .subtitle { color:var(--dim); letter-spacing:.15em; font-size:.75rem; margin-bottom:30px; }
+
+  .grid2 { display:grid; grid-template-columns:1fr 1fr; gap:20px; }
+  .grid3 { display:grid; grid-template-columns:1fr 1fr 1fr; gap:16px; }
+
+  .panel { background:var(--panel); border:1px solid var(--border); border-radius:4px; padding:18px; }
+
+  table { width:100%; border-collapse:collapse; }
+  th { font-family:var(--hud); font-size:.65rem; letter-spacing:.15em; color:var(--dim);
+       text-align:left; padding:6px 10px; border-bottom:1px solid var(--border); }
+  td { padding:7px 10px; border-bottom:1px solid rgba(255,255,255,.04); vertical-align:top; }
+  tr:last-child td { border-bottom:none; }
+  td:first-child { color:var(--cyan); font-weight:bold; white-space:nowrap; }
+  td:nth-child(2) { color:var(--amber); }
+
+  .note { background:rgba(255,170,0,.07); border:1px solid rgba(255,170,0,.25); border-radius:4px;
+          padding:12px 16px; margin:14px 0; }
+  .danger { background:rgba(255,34,68,.08); border:1px solid rgba(255,34,68,.3); border-radius:4px;
+            padding:12px 16px; margin:14px 0; color:var(--red); }
+  .note-label { font-family:var(--hud); font-size:.65rem; color:var(--amber); letter-spacing:.15em; margin-bottom:4px; }
+  .danger-label { font-family:var(--hud); font-size:.65rem; color:var(--red); letter-spacing:.15em; margin-bottom:4px; }
+
+  code { background:rgba(0,220,255,.08); border:1px solid rgba(0,220,255,.2); border-radius:3px;
+         padding:2px 6px; color:var(--cyan); font-family:var(--mono); }
+
+  pre { background:#030610; border:1px solid var(--border); border-radius:4px; padding:16px;
+        overflow-x:auto; color:var(--green); line-height:1.7; font-size:12px; }
+  pre .c { color:var(--dim); }
+  pre .k { color:var(--amber); }
+  pre .n { color:var(--cyan); }
+
+  /* ASCII Schematic */
+  .schematic { background:#020508; border:1px solid var(--border); border-radius:4px;
+               padding:20px; overflow-x:auto; white-space:pre; font-size:12px;
+               color:var(--green); line-height:1.5; }
+
+  .pin-badge { display:inline-block; background:rgba(0,220,255,.12); border:1px solid rgba(0,220,255,.3);
+               border-radius:3px; padding:1px 6px; color:var(--cyan); font-size:.75rem; }
+
+  ul { padding-left:18px; }
+  li { margin-bottom:4px; }
+  li::marker { color:var(--cyan); }
+
+  footer { margin-top:40px; padding-top:14px; border-top:1px solid var(--border);
+           color:var(--dim); font-size:.7rem; letter-spacing:.12em; text-align:center; }
+</style>
+</head>
+<body>
+
+<h1>⬡ SENTINEL — Hardware Reference</h1>
+<p class="subtitle">ARDUINO UNO R3 · LASER SECURITY SYSTEM · SCHEMATIC & PINOUT GUIDE</p>
+
+<!-- ── Full Schematic ─────────────────────────────────────── -->
+<h2>FULL CIRCUIT SCHEMATIC (ASCII)</h2>
+<div class="schematic">
+                        ARDUINO UNO R3
+                    ┌─────────────────────┐
+                    │                     │
+        USB (Web)   │ USB-B            5V ├──────────┬─────────────────┐
+    ════════════════╡ (HW Serial        │           │                 │
+                    │  D0/D1)       3.3V ├──┐    [10kΩ]           [HC-05]
+                    │                   │  │    (pull-up)        VCC→3.3V
+         Laser ─────┤ A0          GND   ├──┴──────┤LDR├──── GND
+         aimed  LDR │               D8  ├──────── [BUZZER] ──── GND
+         at LDR     │              D10  ├──────────────────── HC-05 TX
+                    │              D11  ├──┐ (through voltage) HC-05 RX
+                    │                  │  └──[1kΩ]──┬── HC-05 RX
+                    └──────────────────┘            │
+                                              [2kΩ] to GND
+                                         (Voltage divider: 5V→3.3V)
+
+
+  ┌─────── LDR VOLTAGE DIVIDER CIRCUIT ───────────────────┐
+  │                                                        │
+  │   5V ──── [LDR] ──── A0 ──── [10kΩ to GND]            │
+  │                                                        │
+  │  When laser hits LDR: resistance low → A0 HIGH (~800+) │
+  │  When beam broken:    resistance high → A0 LOW  (~200-) │
+  └────────────────────────────────────────────────────────┘
+
+
+  ┌─────── HC-05 RX LEVEL SHIFTER (REQUIRED!) ────────────┐
+  │                                                        │
+  │   Arduino D11 (5V) ──[1kΩ]──┬── HC-05 RX (3.3V)       │
+  │                              │                         │
+  │                           [2kΩ]                        │
+  │                              │                         │
+  │                             GND                        │
+  │                                                        │
+  │  Voltage divider: V_out = 5V × (2k/(1k+2k)) = 3.33V   │
+  └────────────────────────────────────────────────────────┘
+</div>
+
+<!-- ── Pin Table ──────────────────────────────────────────── -->
+<h2>COMPLETE PINOUT TABLE</h2>
+<div class="panel">
+  <table>
+    <thead>
+      <tr><th>COMPONENT</th><th>PIN / TERMINAL</th><th>ARDUINO PIN</th><th>NOTES</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>LDR (Photoresistor)</td>
+        <td>Terminal A</td>
+        <td><span class="pin-badge">5V</span></td>
+        <td>One leg to 5V power rail</td>
+      </tr>
+      <tr>
+        <td>LDR (Photoresistor)</td>
+        <td>Terminal B (junction)</td>
+        <td><span class="pin-badge">A0</span></td>
+        <td>Mid-point of voltage divider → analog input</td>
+      </tr>
+      <tr>
+        <td>10 kΩ Pull-Down Resistor</td>
+        <td>Between A0 and GND</td>
+        <td><span class="pin-badge">GND</span></td>
+        <td>Forms voltage divider with LDR</td>
+      </tr>
+      <tr>
+        <td>Piezo Buzzer (+)</td>
+        <td>Positive</td>
+        <td><span class="pin-badge">D8</span></td>
+        <td>Direct connection, no resistor needed</td>
+      </tr>
+      <tr>
+        <td>Piezo Buzzer (−)</td>
+        <td>Negative</td>
+        <td><span class="pin-badge">GND</span></td>
+        <td></td>
+      </tr>
+      <tr>
+        <td>HC-05/06 VCC</td>
+        <td>Power</td>
+        <td><span class="pin-badge">3.3V</span> or <span class="pin-badge">5V</span></td>
+        <td>HC-05: use 3.3V or 5V (module has regulator). HC-06: 3.3V preferred</td>
+      </tr>
+      <tr>
+        <td>HC-05/06 GND</td>
+        <td>Ground</td>
+        <td><span class="pin-badge">GND</span></td>
+        <td>Shared ground with Arduino</td>
+      </tr>
+      <tr>
+        <td>HC-05/06 TX</td>
+        <td>Transmit → Arduino</td>
+        <td><span class="pin-badge">D10 (RX)</span></td>
+        <td>3.3V signal — safe for Uno input directly</td>
+      </tr>
+      <tr>
+        <td>HC-05/06 RX</td>
+        <td>Receive ← Arduino</td>
+        <td><span class="pin-badge">D11 (TX)</span> <em>via divider</em></td>
+        <td>⚠ MUST use 1kΩ/2kΩ divider! Arduino outputs 5V, HC-05 RX is 3.3V max</td>
+      </tr>
+      <tr>
+        <td>Laser Diode (+)</td>
+        <td>Anode</td>
+        <td><span class="pin-badge">5V</span> via 100Ω</td>
+        <td>Use a 100Ω current-limiting resistor in series</td>
+      </tr>
+      <tr>
+        <td>Laser Diode (−)</td>
+        <td>Cathode</td>
+        <td><span class="pin-badge">GND</span></td>
+        <td>Aim beam directly at LDR center</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- ── HC-05 Voltage Divider Detail ──────────────────────── -->
+<h2>HC-05 RX VOLTAGE PROTECTION — DETAILED EXPLANATION</h2>
+
+<div class="danger">
+  <div class="danger-label">⚠ CRITICAL — HARDWARE DAMAGE RISK</div>
+  The Arduino Uno operates at <strong>5V logic</strong>. The HC-05/HC-06 Bluetooth module's RX pin is 
+  rated for a maximum of <strong>3.3V</strong>. Connecting D11 (TX) directly to HC-05 RX 
+  <strong>will damage the Bluetooth module</strong> over time and may destroy it immediately.
+</div>
+
+<div class="grid2">
+  <div class="panel">
+    <h3>VOLTAGE DIVIDER CALCULATION</h3>
+    <pre><span class="c">// Resistor values: R1 = 1kΩ, R2 = 2kΩ
+//
+//  D11 ──[R1=1kΩ]──┬── HC-05 RX
+//                  │
+//               [R2=2kΩ]
+//                  │
+//                 GND
+//
+// V_out = V_in × R2 / (R1 + R2)
+// V_out = 5V  × 2000 / (1000 + 2000)
+// V_out = 5V  × 0.6667
+// V_out = 3.33V  ✓ (within 3.3V spec)</span></pre>
+  </div>
+
+  <div class="panel">
+    <h3>ALTERNATIVE: LOGIC LEVEL CONVERTER</h3>
+    <p>For a cleaner solution, use a bi-directional logic level converter module (BSS138-based):</p>
+    <br/>
+    <ul>
+      <li>LV side → 3.3V + Arduino TX</li>
+      <li>HV side → 5V + HC-05 RX</li>
+      <li>Works at all baud rates without signal degradation</li>
+      <li>Protects both directions automatically</li>
+      <li>Costs ~$1 on breakout boards</li>
+    </ul>
+  </div>
+</div>
+
+<!-- ── HC-05 Config ───────────────────────────────────────── -->
+<h2>HC-05 INITIAL CONFIGURATION (AT COMMANDS)</h2>
+<div class="note">
+  <div class="note-label">ℹ BEFORE FIRST USE</div>
+  Hold the HC-05 EN button while powering on to enter AT mode. Connect TX/RX directly to Arduino
+  (no voltage divider needed for AT mode config). Use Serial Monitor at 38400 baud.
+</div>
+<pre><span class="c">// AT Command sequence to configure HC-05</span>
+<span class="n">AT</span>                         <span class="c">→ OK  (test connection)</span>
+<span class="n">AT+NAME=SENTINEL</span>           <span class="c">→ OK  (set device name)</span>
+<span class="n">AT+PSWD=1234</span>               <span class="c">→ OK  (set PIN code)</span>
+<span class="n">AT+UART=9600,0,0</span>           <span class="c">→ OK  (set baud to match firmware)</span>
+<span class="n">AT+ROLE=0</span>                  <span class="c">→ OK  (Slave mode — waits for connection)</span>
+<span class="n">AT+RESET</span>                   <span class="c">→ OK  (restart in normal mode)</span>
+
+<span class="c">// HC-06 uses different AT syntax (no newline needed):
+// AT+NAMESENTINEL
+// AT+PIN1234
+// AT+BAUD4  (4 = 9600 baud)</span></pre>
+
+<!-- ── Parts List ─────────────────────────────────────────── -->
+<h2>BILL OF MATERIALS</h2>
+<div class="panel">
+  <table>
+    <thead>
+      <tr><th>COMPONENT</th><th>SPEC / VALUE</th><th>QTY</th><th>PURPOSE</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>Arduino Uno R3</td><td>ATmega328P, 5V</td><td>1</td><td>Main microcontroller</td></tr>
+      <tr><td>HC-05 or HC-06</td><td>Bluetooth Classic 2.0</td><td>1</td><td>Wireless link to mobile app</td></tr>
+      <tr><td>LDR (Photoresistor)</td><td>GL5516 or similar</td><td>1</td><td>Laser beam detector</td></tr>
+      <tr><td>Resistor</td><td>10 kΩ</td><td>1</td><td>LDR pull-down (voltage divider)</td></tr>
+      <tr><td>Resistor</td><td>1 kΩ</td><td>1</td><td>HC-05 RX voltage divider R1</td></tr>
+      <tr><td>Resistor</td><td>2 kΩ</td><td>1</td><td>HC-05 RX voltage divider R2</td></tr>
+      <tr><td>Resistor</td><td>100 Ω</td><td>1</td><td>Laser diode current limiter</td></tr>
+      <tr><td>Piezo Buzzer</td><td>3–5V passive or active</td><td>1</td><td>Audible alarm</td></tr>
+      <tr><td>Laser Diode Module</td><td>5V, 650nm red, &lt;5mW</td><td>1</td><td>Perimeter beam</td></tr>
+      <tr><td>Breadboard</td><td>Half-size or larger</td><td>1</td><td>Prototyping</td></tr>
+      <tr><td>Jumper Wires</td><td>M-M, M-F assorted</td><td>~20</td><td>Connections</td></tr>
+      <tr><td>USB-B Cable</td><td>Standard Arduino cable</td><td>1</td><td>Programming + Web Serial</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- ── Calibration Tips ───────────────────────────────────── -->
+<h2>CALIBRATION & TROUBLESHOOTING</h2>
+<div class="grid3">
+  <div class="panel">
+    <h3>BEAM ALIGNMENT</h3>
+    <ul>
+      <li>Position laser 1–5m from LDR</li>
+      <li>Use a cardboard mount or 3D-printed bracket</li>
+      <li>Aim beam at LDR center for maximum sensitivity</li>
+      <li>Shield LDR from ambient light with a short tube</li>
+    </ul>
+  </div>
+  <div class="panel">
+    <h3>THRESHOLD TUNING</h3>
+    <ul>
+      <li>Open Serial Monitor at 9600 baud</li>
+      <li>Note <code>CAL:BASELINE=</code> value on boot</li>
+      <li>Manually break beam, observe ADC drop</li>
+      <li>Set <code>BEAM_BREAK_THRESHOLD</code> to ~70% of that drop</li>
+      <li>Typical: baseline ~850, break ~300, threshold 150</li>
+    </ul>
+  </div>
+  <div class="panel">
+    <h3>COMMON ISSUES</h3>
+    <ul>
+      <li>No BT connection → check baud rate matches AT config</li>
+      <li>False alarms → increase threshold or shield LDR</li>
+      <li>Buzzer always on → SoftwareSerial pin conflict; avoid pins 0,1</li>
+      <li>HC-05 not pairing → enter AT mode, verify ROLE=0</li>
+      <li>Web Serial not working → must use Chrome/Edge, HTTPS required for deployment</li>
+    </ul>
+  </div>
+</div>
+
+<footer>
+  SENTINEL HARDWARE REFERENCE · ARDUINO UNO R3 · HC-05/06 BLUETOOTH · LDR LASER PERIMETER SYSTEM
+</footer>
+
+</body>
+</html>
