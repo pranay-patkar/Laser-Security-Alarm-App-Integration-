@@ -1,0 +1,36 @@
+name: sentinel_app
+description: SENTINEL Laser Security System — Mobile Controller
+
+publish_to: 'none'
+
+version: 1.0.0+1
+
+environment:
+  sdk: '>=3.0.0 <4.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  # Bluetooth Classic (HC-05/06) — works on Android & iOS (limited)
+  flutter_bluetooth_serial: ^0.4.0
+
+  # Background notifications
+  flutter_local_notifications: ^17.0.0
+
+  # Keep app alive in background for BT reading
+  flutter_background_service: ^5.0.5
+
+  # Permission handling
+  permission_handler: ^11.0.0
+
+  # Date formatting
+  intl: ^0.19.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^3.0.0
+
+flutter:
+  uses-material-design: true
