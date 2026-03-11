@@ -28,7 +28,7 @@ const dom = {
   telUptime:     $('telUptime'),    footerStatus:$('footerStatus'),
   // BT
   btDot:         $('btDot'),        btDeviceName:$('btDeviceName'),
-  btStatusSub:   $('btStatusSub'), btIcon: document.querySelector('.bt-icon'),
+  btStatusSub:   $('btStatusSub'), btIcon: $('btIcon'),
   btInput:       $('btInput'),      btnBtSend:  $('btnBtSend'),
   btLastCmd:     $('btLastCmd'),
   // Demo modal
@@ -447,6 +447,7 @@ dom.btnDemo.addEventListener('click', () => {
   if (!state.demoMode) {
     state.demoMode = true;
     dom.btnDemo.classList.add('active');
+    dom.btnDemo.textContent = '⚙ DEMO ACTIVE';
     dom.demoBadge.classList.remove('hidden');
     dom.btnArm.disabled    = false;
     dom.btnDisarm.disabled = false;
@@ -460,6 +461,20 @@ dom.btnDemo.addEventListener('click', () => {
 
 dom.demoClose.addEventListener('click', () => {
   dom.demoOverlay.classList.add('hidden');
+  // Fully exit demo mode
+  state.demoMode = false;
+  dom.btnDemo.classList.remove('active');
+  dom.btnDemo.textContent = '⚙ DEMO MODE';
+  dom.demoBadge.classList.add('hidden');
+  if (!state.connected) {
+    dom.btnArm.disabled    = true;
+    dom.btnDisarm.disabled = true;
+    applySystemState('OFFLINE');
+    dom.portLabel.textContent = 'NO DEVICE CONNECTED';
+  }
+  stopAlarmSound();
+  if (ldrSimInterval) { clearInterval(ldrSimInterval); ldrSimInterval = null; }
+  logEvent('Demo mode deactivated.', 'system');
 });
 dom.demoOverlay.addEventListener('click', e => {
   if (e.target === dom.demoOverlay) dom.demoOverlay.classList.add('hidden');
